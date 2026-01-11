@@ -742,6 +742,31 @@ function RecomendacoesSection({ form, setForm }) {
         setLoadingObs(false);
     };
     
+    const addFotoRef = () => {
+        const refs = form.fotosReferencia || [];
+        setForm({...form, fotosReferencia: [...refs, { id: genId(), imagem: '', descricao: '', tipo: 'mobiliario' }]});
+    };
+    
+    const updateFotoRef = (id, field, value) => {
+        const refs = (form.fotosReferencia || []).map(f => f.id === id ? {...f, [field]: value} : f);
+        setForm({...form, fotosReferencia: refs});
+    };
+    
+    const removeFotoRef = (id) => {
+        setForm({...form, fotosReferencia: (form.fotosReferencia || []).filter(f => f.id !== id)});
+    };
+    
+    const handleUploadRef = (id, e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (ev) => updateFotoRef(id, 'imagem', ev.target.result);
+            reader.readAsDataURL(file);
+        }
+    };
+    
+    const TIPOS_REF = { mobiliario: '🪑 Mobiliário', equipamento: '🖥️ Equipamento', acessorio: '🔧 Acessório', layout: '📐 Layout' };
+    
     return (
         <div>
             <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:8}}>
@@ -755,7 +780,38 @@ function RecomendacoesSection({ form, setForm }) {
                 <div className="form-group"><label className="form-label">Prioridade Geral</label><select className="form-select" value={form.prioridade || 'media'} onChange={e => setForm({...form, prioridade: e.target.value})}><option value="baixa">Baixa</option><option value="media">Média</option><option value="alta">Alta</option><option value="urgente">Urgente</option></select></div>
             </div>
             
-            <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginTop:16, marginBottom:8}}>
+            <div className="section-title" style={{marginTop:20}}>📷 Fotos de Referência (Mobiliário/Equipamentos Sugeridos)</div>
+            <p style={{fontSize:'0.75rem', color:'var(--text-secondary)', marginBottom:12}}>Anexe imagens de mobiliário ou equipamentos ergonômicos recomendados para a empresa implementar.</p>
+            
+            <div style={{display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(180px, 1fr))', gap:10}}>
+                {(form.fotosReferencia || []).map((foto) => (
+                    <div key={foto.id} style={{background:'var(--bg-input)', border: foto.imagem ? '2px solid var(--success)' : '1px solid var(--border)', borderRadius:8, padding:10}}>
+                        {foto.imagem ? (
+                            <img src={foto.imagem} style={{width:'100%', height:100, objectFit:'cover', borderRadius:6, marginBottom:8}} />
+                        ) : (
+                            <label style={{display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', height:100, background:'var(--bg-dark)', borderRadius:6, cursor:'pointer', marginBottom:8}}>
+                                <span style={{fontSize:'1.5rem'}}>📷</span>
+                                <span style={{fontSize:'0.65rem', color:'var(--text-secondary)'}}>Adicionar imagem</span>
+                                <input type="file" accept="image/*" style={{display:'none'}} onChange={(e) => handleUploadRef(foto.id, e)} />
+                            </label>
+                        )}
+                        <select className="form-select" value={foto.tipo} onChange={e => updateFotoRef(foto.id, 'tipo', e.target.value)} style={{fontSize:'0.7rem', padding:'6px', marginBottom:6}}>
+                            {Object.entries(TIPOS_REF).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+                        </select>
+                        <input className="form-input" value={foto.descricao || ''} onChange={e => updateFotoRef(foto.id, 'descricao', e.target.value)} placeholder="Descrição..." style={{fontSize:'0.7rem', padding:'6px', marginBottom:6}} />
+                        <div style={{display:'flex', gap:4}}>
+                            {foto.imagem && <label className="btn btn-secondary btn-sm" style={{flex:1, cursor:'pointer', textAlign:'center', fontSize:'0.7rem'}}>🔄<input type="file" accept="image/*" style={{display:'none'}} onChange={(e) => handleUploadRef(foto.id, e)} /></label>}
+                            <button className="btn btn-danger btn-sm" style={{flex:1, fontSize:'0.7rem'}} onClick={() => removeFotoRef(foto.id)}>🗑️</button>
+                        </div>
+                    </div>
+                ))}
+                <div style={{background:'var(--bg-input)', border:'2px dashed var(--border)', borderRadius:8, padding:10, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', minHeight:180, cursor:'pointer'}} onClick={addFotoRef}>
+                    <span style={{fontSize:'2rem'}}>➕</span>
+                    <span style={{fontSize:'0.7rem', color:'var(--text-secondary)', textAlign:'center', marginTop:8}}>Adicionar foto<br/>de referência</span>
+                </div>
+            </div>
+            
+            <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginTop:20, marginBottom:8}}>
                 <label className="form-label" style={{margin:0}}>OBSERVAÇÕES ADICIONAIS</label>
                 <button className="btn btn-ai btn-sm" onClick={gerarObservacoesIA} disabled={loadingObs}>{loadingObs ? '⏳' : '🤖 Gerar com IA'}</button>
             </div>
@@ -827,7 +883,7 @@ function Analyses({ companies, analyses, setAnalyses }) {
                     <button className={`tab ${tab === 'ferramentas' ? 'active' : ''}`} onClick={() => setTab('ferramentas')}>🔧 Ferramentas ({form.avaliacoes?.length || 0})</button>
                     <button className={`tab ${tab === 'fotos' ? 'active' : ''}`} onClick={() => setTab('fotos')}>📷 Fotos ({form.fotos?.filter(f => f.imagem).length || 0})</button>
                     <button className={`tab ${tab === 'riscos' ? 'active' : ''}`} onClick={() => setTab('riscos')}>⚠️ Riscos ({form.riscos?.length || 0})</button>
-                    <button className={`tab ${tab === 'recom' ? 'active' : ''}`} onClick={() => setTab('recom')}>💡 Recomendações</button>
+                    <button className={`tab ${tab === 'recom' ? 'active' : ''}`} onClick={() => setTab('recom')}>💡 Recomendações {(form.fotosReferencia?.filter(f => f.imagem).length || 0) > 0 ? `(${form.fotosReferencia.filter(f => f.imagem).length} 📷)` : ''}</button>
                 </div>
                 
                 {tab === 'info' && (<div>
@@ -961,13 +1017,23 @@ function Reports({ companies, analyses, config }) {
                 // RISCOS
                 const secBase = (a.avaliacoes?.length > 0 ? 7 : 6) + (fotosComImagem.length > 0 ? 1 : 0);
                 const secRiscos = secBase + 1;
-                html += `<div class="page"><h2>${secRiscos}. INVENTÁRIO DE RISCOS ERGONÔMICOS</h2><p>O inventário de riscos ergonômicos foi elaborado em conformidade com as diretrizes da NR-01 (Gerenciamento de Riscos Ocupacionais), utilizando a metodologia de Matriz de Risco para priorização das ações de controle. Esta ferramenta permite avaliar sistematicamente os perigos identificados, considerando a probabilidade de ocorrência e a severidade das consequências.</p><div class="info-box" style="background:#f8fafc;border-color:#e2e8f0"><strong>Metodologia da Matriz de Risco 5x5:</strong><p style="margin:8px 0">A avaliação é realizada através da combinação de <strong>Probabilidade</strong> (1-5) e <strong>Severidade</strong> (1-5), resultando em valores de 1 a 25. Os níveis de risco determinam os prazos para implementação das medidas de controle:</p><p style="margin:4px 0;font-size:9pt"><span style="background:#22c55e;color:white;padding:2px 6px;border-radius:4px">Trivial (1-4)</span> Monitoramento contínuo | <span style="background:#84cc16;color:white;padding:2px 6px;border-radius:4px">Tolerável (5-8)</span> 12 meses | <span style="background:#eab308;color:white;padding:2px 6px;border-radius:4px">Moderado (9-12)</span> 6 meses | <span style="background:#f97316;color:white;padding:2px 6px;border-radius:4px">Substancial (15-16)</span> 3 meses | <span style="background:#ef4444;color:white;padding:2px 6px;border-radius:4px">Intolerável (20-25)</span> Imediato</p></div>`;
+                html += `<div class="page"><h2>${secRiscos}. INVENTÁRIO DE RISCOS ERGONÔMICOS</h2><p>O inventário de riscos ergonômicos foi elaborado em conformidade com as diretrizes da NR-01 (Gerenciamento de Riscos Ocupacionais), utilizando a metodologia de Matriz de Risco para priorização das ações de controle. Esta ferramenta permite avaliar sistematicamente os perigos identificados, considerando a probabilidade de ocorrência e a severidade das consequências.</p><div style="background:linear-gradient(135deg,#f8fafc,#e2e8f0);border:2px solid #1e40af;border-radius:12px;padding:16px;margin:16px 0"><div style="font-weight:700;color:#1e40af;font-size:12pt;margin-bottom:10px;display:flex;align-items:center;gap:8px">📊 Metodologia da Matriz de Risco 5x5</div><p style="margin:8px 0;font-size:10pt">A avaliação é realizada através da combinação de <strong>Probabilidade</strong> (1-5) × <strong>Severidade</strong> (1-5), resultando em valores de risco de 1 a 25.</p><div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;justify-content:center"><div style="background:#22c55e;color:white;padding:6px 12px;border-radius:20px;font-size:9pt;font-weight:600">Trivial (1-4)<br/><span style="font-weight:400;font-size:8pt">Monitoramento</span></div><div style="background:#84cc16;color:white;padding:6px 12px;border-radius:20px;font-size:9pt;font-weight:600">Tolerável (5-8)<br/><span style="font-weight:400;font-size:8pt">12 meses</span></div><div style="background:#eab308;color:white;padding:6px 12px;border-radius:20px;font-size:9pt;font-weight:600">Moderado (9-12)<br/><span style="font-weight:400;font-size:8pt">6 meses</span></div><div style="background:#f97316;color:white;padding:6px 12px;border-radius:20px;font-size:9pt;font-weight:600">Substancial (15-16)<br/><span style="font-weight:400;font-size:8pt">3 meses</span></div><div style="background:#ef4444;color:white;padding:6px 12px;border-radius:20px;font-size:9pt;font-weight:600">Intolerável (20-25)<br/><span style="font-weight:400;font-size:8pt">Imediato</span></div></div></div>`;
                 if (a.riscos?.length > 0) { html += `<table><tr><th>Perigo Identificado</th><th>Medidas Existentes</th><th style="text-align:center">P</th><th style="text-align:center">S</th><th style="text-align:center">Risco</th><th>Nível</th><th>Prazo</th></tr>${a.riscos.sort((x,y) => (y.valor||0) - (x.valor||0)).map(r => `<tr><td>${r.perigo}</td><td style="font-size:9pt">${r.medidas || '-'}</td><td style="text-align:center">${r.prob}</td><td style="text-align:center">${r.sev}</td><td style="text-align:center"><span class="badge ${r.nivel === 'Trivial' ? 'trivial' : r.nivel === 'Tolerável' ? 'toleravel' : r.nivel === 'Moderado' ? 'moderado' : r.nivel === 'Substancial' ? 'substancial' : 'intoleravel'}">${r.valor}</span></td><td>${r.nivel}</td><td>${r.prazo}</td></tr>`).join('')}</table>`; } else { html += `<p>Não foram identificados riscos ergonômicos significativos no posto de trabalho analisado durante a realização desta análise.</p>`; }
                 html += `</div>`;
                 
                 // RECOMENDAÇÕES E CONSIDERAÇÕES (sem quebra)
                 const secRecom = secRiscos + 1;
-                html += `<div class="page"><h2>${secRecom}. RECOMENDAÇÕES TÉCNICAS</h2>${a.recomendacoes ? `<div class="info-box">${a.recomendacoes.replace(/\n/g, '<br>')}</div>` : '<p>As recomendações específicas serão elaboradas com base nos riscos identificados e nas condições observadas durante a análise.</p>'}${a.observacoes ? `<h3>Observações Adicionais</h3><p>${a.observacoes}</p>` : ''}<h2>${secRecom + 1}. CONSIDERAÇÕES FINAIS</h2><p>A presente Análise Ergonômica do Trabalho foi elaborada em conformidade com as disposições da Norma Regulamentadora nº 17 e demais instrumentos normativos aplicáveis, incluindo as normas técnicas da ABNT (NBR ISO 11226, NBR ISO 10075-3, NBR 13962 e NBR 10152), utilizando metodologias de avaliação ergonômica validadas cientificamente.</p><p>As recomendações técnicas apresentadas têm como objetivo principal promover a adequação das condições de trabalho às características psicofisiológicas dos trabalhadores, contribuindo para a prevenção de distúrbios osteomusculares relacionados ao trabalho (DORT), melhoria da qualidade de vida no ambiente laboral e aumento da produtividade organizacional.</p><p>Recomenda-se que a implementação das medidas propostas seja acompanhada pelo Serviço Especializado em Engenharia de Segurança e em Medicina do Trabalho (SESMT), quando existente, ou pelo responsável designado. Sugere-se ainda a reavaliação periódica das condições ergonômicas, especialmente após a implementação das medidas corretivas, ou quando ocorrerem alterações significativas no processo de trabalho.</p><p>Este documento técnico integra o conjunto de documentos do Programa de Gerenciamento de Riscos (PGR) da organização, conforme estabelecido pela NR-01, devendo ser mantido à disposição da fiscalização e dos trabalhadores interessados.</p><div class="assinatura"><div class="assinatura-linha"></div><div style="font-weight:600">${config?.responsavel || 'Responsável Técnico'}</div>${config?.cargo ? `<div>${config.cargo}</div>` : ''}${config?.registro ? `<div style="font-size:10pt">${config.registro}</div>` : ''}</div></div>`;
+                const fotosRef = a.fotosReferencia?.filter(f => f.imagem) || [];
+                const TIPOS_REF_PDF = { mobiliario: '🪑 Mobiliário', equipamento: '🖥️ Equipamento', acessorio: '🔧 Acessório', layout: '📐 Layout' };
+                html += `<div class="page"><h2>${secRecom}. RECOMENDAÇÕES TÉCNICAS</h2>${a.recomendacoes ? `<div class="info-box">${a.recomendacoes.replace(/\n/g, '<br>')}</div>` : '<p>As recomendações específicas serão elaboradas com base nos riscos identificados e nas condições observadas durante a análise.</p>'}`;
+                if (fotosRef.length > 0) {
+                    html += `<h3 style="margin-top:20px">📷 Referências de Mobiliário e Equipamentos Sugeridos</h3><p style="font-size:10pt;color:#666;margin-bottom:12px">As imagens abaixo ilustram exemplos de mobiliário e equipamentos ergonômicos recomendados para implementação:</p><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px">`;
+                    fotosRef.forEach((f) => {
+                        html += `<div style="border:1px solid #ddd;border-radius:8px;overflow:hidden;background:#f8f8f8"><img src="${f.imagem}" style="width:100%;height:120px;object-fit:cover"/><div style="padding:8px"><div style="font-size:9pt;color:#1e40af;font-weight:600">${TIPOS_REF_PDF[f.tipo] || '📦 Item'}</div>${f.descricao ? `<div style="font-size:9pt;color:#333;margin-top:4px">${f.descricao}</div>` : ''}</div></div>`;
+                    });
+                    html += `</div>`;
+                }
+                html += `${a.observacoes ? `<h3 style="margin-top:20px">Observações Adicionais</h3><p>${a.observacoes}</p>` : ''}<h2>${secRecom + 1}. CONSIDERAÇÕES FINAIS</h2><p>A presente Análise Ergonômica do Trabalho foi elaborada em conformidade com as disposições da Norma Regulamentadora nº 17 e demais instrumentos normativos aplicáveis, incluindo as normas técnicas da ABNT (NBR ISO 11226, NBR ISO 10075-3, NBR 13962 e NBR 10152), utilizando metodologias de avaliação ergonômica validadas cientificamente.</p><p>As recomendações técnicas apresentadas têm como objetivo principal promover a adequação das condições de trabalho às características psicofisiológicas dos trabalhadores, contribuindo para a prevenção de distúrbios osteomusculares relacionados ao trabalho (DORT), melhoria da qualidade de vida no ambiente laboral e aumento da produtividade organizacional.</p><p>Recomenda-se que a implementação das medidas propostas seja acompanhada pelo Serviço Especializado em Engenharia de Segurança e em Medicina do Trabalho (SESMT), quando existente, ou pelo responsável designado. Sugere-se ainda a reavaliação periódica das condições ergonômicas, especialmente após a implementação das medidas corretivas, ou quando ocorrerem alterações significativas no processo de trabalho.</p><p>Este documento técnico integra o conjunto de documentos do Programa de Gerenciamento de Riscos (PGR) da organização, conforme estabelecido pela NR-01, devendo ser mantido à disposição da fiscalização e dos trabalhadores interessados.</p><div class="assinatura"><div class="assinatura-linha"></div><div style="font-weight:600">${config?.responsavel || 'Responsável Técnico'}</div>${config?.cargo ? `<div>${config.cargo}</div>` : ''}${config?.registro ? `<div style="font-size:10pt">${config.registro}</div>` : ''}</div></div>`;
             });
             
             html += `</body></html>`;
