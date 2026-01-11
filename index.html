@@ -1,0 +1,1109 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema AET v8.2 - Análise Ergonômica do Trabalho</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+    <style>
+        :root { --primary: #1e40af; --primary-light: #3b82f6; --accent: #f97316; --bg-dark: #0f172a; --bg-card: #1e293b; --bg-input: #334155; --text-primary: #f1f5f9; --text-secondary: #94a3b8; --success: #22c55e; --warning: #eab308; --danger: #ef4444; --border: #475569; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg-dark); min-height: 100vh; color: var(--text-primary); }
+        .login-container { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, var(--bg-dark) 0%, #1e293b 100%); padding: 20px; }
+        .login-box { background: var(--bg-card); border-radius: 16px; padding: 40px; width: 100%; max-width: 420px; border: 1px solid var(--border); box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); }
+        .login-logo { text-align: center; margin-bottom: 30px; }
+        .login-logo h1 { font-size: 2rem; background: linear-gradient(135deg, var(--accent), #fbbf24); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .login-logo p { color: var(--text-secondary); font-size: 0.85rem; margin-top: 8px; }
+        .login-form { display: flex; flex-direction: column; gap: 16px; }
+        .login-input { padding: 14px 16px; background: var(--bg-input); border: 1px solid var(--border); border-radius: 8px; color: var(--text-primary); font-size: 1rem; width: 100%; }
+        .login-input:focus { outline: none; border-color: var(--accent); }
+        .login-btn { padding: 14px; background: var(--accent); border: none; border-radius: 8px; color: white; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+        .login-btn:hover { background: #ea580c; transform: translateY(-2px); }
+        .login-error { background: rgba(239,68,68,0.15); border: 1px solid var(--danger); color: var(--danger); padding: 12px; border-radius: 8px; font-size: 0.85rem; text-align: center; }
+        .login-tabs { display: flex; gap: 8px; margin-bottom: 20px; }
+        .login-tab { flex: 1; padding: 10px; background: var(--bg-input); border: 1px solid var(--border); border-radius: 8px; color: var(--text-secondary); cursor: pointer; text-align: center; font-size: 0.85rem; transition: all 0.2s; }
+        .login-tab.active { background: var(--primary); border-color: var(--primary); color: white; }
+        .storage-info { background: var(--bg-input); border-radius: 8px; padding: 12px; margin-top: 16px; }
+        .storage-info h4 { font-size: 0.75rem; color: var(--accent); margin-bottom: 8px; }
+        .storage-info p { font-size: 0.7rem; color: var(--text-secondary); line-height: 1.5; }
+        .app { display: flex; min-height: 100vh; }
+        .sidebar { width: 200px; background: var(--bg-card); border-right: 1px solid var(--border); padding: 15px; position: fixed; height: 100vh; overflow-y: auto; display: flex; flex-direction: column; }
+        .logo { text-align: center; padding-bottom: 15px; border-bottom: 1px solid var(--border); margin-bottom: 15px; }
+        .logo h1 { font-size: 1.1rem; background: linear-gradient(135deg, var(--accent), #fbbf24); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .logo span { font-size: 0.6rem; color: var(--text-secondary); }
+        .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px; cursor: pointer; margin-bottom: 4px; color: var(--text-secondary); font-size: 0.8rem; transition: all 0.2s; }
+        .nav-item:hover, .nav-item.active { background: var(--primary); color: white; }
+        .sidebar-footer { margin-top: auto; padding-top: 15px; border-top: 1px solid var(--border); }
+        .user-info { display: flex; align-items: center; gap: 10px; padding: 10px; background: var(--bg-input); border-radius: 8px; font-size: 0.75rem; }
+        .user-avatar { width: 32px; height: 32px; background: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; }
+        .logout-btn { width: 100%; margin-top: 10px; padding: 8px; background: transparent; border: 1px solid var(--border); border-radius: 6px; color: var(--text-secondary); cursor: pointer; font-size: 0.75rem; }
+        .logout-btn:hover { background: var(--danger); border-color: var(--danger); color: white; }
+        .copyright { text-align: center; font-size: 0.6rem; color: var(--text-secondary); margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); }
+        .main { flex: 1; margin-left: 200px; padding: 20px; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
+        .title { font-size: 1.5rem; font-weight: 700; }
+        .btn { padding: 10px 16px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s; }
+        .btn:hover { opacity: 0.9; transform: translateY(-1px); }
+        .btn-primary { background: var(--accent); color: white; }
+        .btn-secondary { background: var(--bg-input); color: var(--text-primary); border: 1px solid var(--border); }
+        .btn-success { background: var(--success); color: white; }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-ai { background: linear-gradient(135deg, #8b5cf6, #6366f1); color: white; }
+        .btn-sm { padding: 6px 10px; font-size: 0.75rem; }
+        .card { background: var(--bg-card); border-radius: 10px; padding: 16px; margin-bottom: 16px; border: 1px solid var(--border); }
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
+        .card-title { font-size: 1rem; font-weight: 600; }
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
+        .form-group { display: flex; flex-direction: column; gap: 6px; }
+        .form-group.full { grid-column: 1 / -1; }
+        .form-label { font-size: 0.7rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; }
+        .form-input, .form-select, .form-textarea { padding: 10px 12px; background: var(--bg-input); border: 1px solid var(--border); border-radius: 6px; color: var(--text-primary); font-size: 0.85rem; }
+        .form-input:focus, .form-select:focus, .form-textarea:focus { outline: none; border-color: var(--primary-light); }
+        .form-textarea { min-height: 100px; resize: vertical; font-family: inherit; }
+        .form-textarea.large { min-height: 180px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 10px; text-align: left; border-bottom: 1px solid var(--border); font-size: 0.8rem; }
+        th { background: var(--bg-input); font-size: 0.7rem; text-transform: uppercase; color: var(--text-secondary); }
+        .badge { padding: 4px 10px; border-radius: 12px; font-size: 0.65rem; font-weight: 600; }
+        .badge-success { background: rgba(34,197,94,0.2); color: var(--success); }
+        .badge-warning { background: rgba(234,179,8,0.2); color: var(--warning); }
+        .badge-danger { background: rgba(239,68,68,0.2); color: var(--danger); }
+        .badge-info { background: rgba(59,130,246,0.2); color: var(--primary-light); }
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
+        .modal { background: var(--bg-card); border-radius: 12px; width: 100%; max-width: 1100px; max-height: 90vh; overflow: hidden; display: flex; flex-direction: column; }
+        .modal-header { padding: 16px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+        .modal-title { font-size: 1rem; font-weight: 600; }
+        .modal-close { background: none; border: none; color: var(--text-secondary); font-size: 1.5rem; cursor: pointer; }
+        .modal-body { padding: 16px; overflow-y: auto; flex: 1; }
+        .modal-footer { padding: 12px 16px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 10px; }
+        .tabs { display: flex; gap: 4px; background: var(--bg-input); padding: 4px; border-radius: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+        .tab { padding: 8px 14px; border: none; background: transparent; color: var(--text-secondary); border-radius: 6px; cursor: pointer; font-size: 0.75rem; transition: all 0.2s; }
+        .tab.active { background: var(--primary); color: white; }
+        .section-title { font-size: 0.85rem; font-weight: 600; color: var(--primary-light); margin: 16px 0 10px; padding-bottom: 6px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px; margin-bottom: 20px; }
+        .stat-card { background: var(--bg-card); border-radius: 10px; padding: 16px; border: 1px solid var(--border); }
+        .stat-value { font-size: 1.8rem; font-weight: 700; color: var(--accent); }
+        .stat-label { color: var(--text-secondary); font-size: 0.7rem; }
+        .empty { text-align: center; padding: 40px; color: var(--text-secondary); }
+        .actions { display: flex; gap: 6px; }
+        .chip-container { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+        .chip { padding: 6px 12px; background: var(--bg-input); border: 1px solid var(--border); border-radius: 16px; font-size: 0.75rem; cursor: pointer; transition: all 0.2s; }
+        .chip:hover { border-color: var(--primary-light); }
+        .chip.selected { background: var(--primary); border-color: var(--primary); }
+        .multi-select { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px; }
+        .multi-item { display: flex; align-items: center; gap: 8px; padding: 10px 12px; background: var(--bg-input); border: 1px solid var(--border); border-radius: 8px; font-size: 0.78rem; cursor: pointer; transition: all 0.2s; }
+        .multi-item:hover { border-color: var(--primary-light); }
+        .multi-item.selected { background: var(--primary); border-color: var(--primary); }
+        .compliance { padding: 10px 14px; border-radius: 8px; margin-top: 8px; font-size: 0.75rem; }
+        .compliance.success { background: rgba(34,197,94,0.15); border: 1px solid var(--success); color: var(--success); }
+        .compliance.warning { background: rgba(234,179,8,0.15); border: 1px solid var(--warning); color: var(--warning); }
+        .compliance.danger { background: rgba(239,68,68,0.15); border: 1px solid var(--danger); color: var(--danger); }
+        .posture-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 8px; }
+        .posture-item { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 12px; background: var(--bg-input); border: 1px solid var(--border); border-radius: 8px; cursor: pointer; font-size: 0.72rem; text-align: center; transition: all 0.2s; }
+        .posture-item:hover { border-color: var(--primary-light); }
+        .posture-item.selected { background: var(--primary); border-color: var(--primary); }
+        .posture-item .icon { font-size: 1.5rem; }
+        .tool-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 10px; }
+        .tool-card { background: var(--bg-input); border: 1px solid var(--border); border-radius: 8px; padding: 12px; cursor: pointer; transition: all 0.2s; }
+        .tool-card:hover { border-color: var(--primary-light); }
+        .result-box { background: var(--bg-input); border: 2px solid var(--border); border-radius: 10px; padding: 16px; text-align: center; margin: 12px 0; }
+        .result-score { font-size: 2.5rem; font-weight: 700; }
+        .result-level { font-size: 1rem; font-weight: 600; margin-top: 6px; }
+        .result-desc { font-size: 0.8rem; color: var(--text-secondary); margin-top: 8px; }
+        .score-green { color: var(--success); border-color: var(--success); }
+        .score-yellow { color: var(--warning); border-color: var(--warning); }
+        .score-orange { color: #f97316; border-color: #f97316; }
+        .score-red { color: var(--danger); border-color: var(--danger); }
+        .risco-resultado { padding: 14px; border-radius: 10px; margin: 12px 0; text-align: center; }
+        .risco-valor { font-size: 2rem; font-weight: 700; }
+        .risco-nivel { font-size: 0.95rem; font-weight: 600; margin-top: 6px; }
+        .risco-acao { font-size: 0.75rem; margin-top: 8px; padding: 8px; background: rgba(0,0,0,0.2); border-radius: 6px; }
+        .logo-upload { display: flex; flex-direction: column; align-items: center; justify-content: center; border: 2px dashed var(--border); border-radius: 8px; padding: 16px; cursor: pointer; min-height: 100px; }
+        .logo-upload:hover { border-color: var(--accent); }
+        .logo-upload img { max-height: 70px; max-width: 100%; }
+        .alert { padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; display: flex; align-items: flex-start; gap: 10px; font-size: 0.8rem; }
+        .alert-info { background: rgba(59,130,246,0.15); border: 1px solid var(--primary-light); color: var(--primary-light); }
+        .alert-warning { background: rgba(234,179,8,0.15); border: 1px solid var(--warning); color: var(--warning); }
+        .photo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; }
+        .photo-card { background: var(--bg-input); border: 2px dashed var(--border); border-radius: 10px; padding: 14px; min-height: 280px; display: flex; flex-direction: column; }
+        .photo-card.has-image { border-style: solid; border-color: var(--success); }
+        .photo-upload { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; color: var(--text-secondary); font-size: 0.8rem; }
+        .photo-preview { width: 100%; height: 160px; object-fit: cover; border-radius: 6px; margin-bottom: 10px; }
+        .photo-actions { display: flex; gap: 6px; margin-top: 8px; }
+        .calc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; }
+        .calc-item { display: flex; flex-direction: column; gap: 4px; }
+        .calc-item label { font-size: 0.7rem; color: var(--text-secondary); }
+        .calc-item select, .calc-item input { padding: 8px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 6px; color: var(--text-primary); font-size: 0.8rem; }
+        .custom-field { margin-top: 10px; padding: 12px; background: var(--bg-dark); border-radius: 8px; border: 1px dashed var(--border); }
+        .custom-field-label { font-size: 0.7rem; color: var(--accent); margin-bottom: 6px; }
+        .ai-loading { display: flex; align-items: center; gap: 8px; padding: 10px; background: rgba(139,92,246,0.1); border-radius: 8px; color: #a78bfa; font-size: 0.8rem; margin-bottom: 10px; }
+        .ai-loading .spinner { width: 16px; height: 16px; border: 2px solid #a78bfa; border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .medidas-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 6px; margin-bottom: 10px; }
+        .medida-chip { padding: 8px 12px; background: var(--bg-input); border: 1px solid var(--border); border-radius: 6px; font-size: 0.72rem; cursor: pointer; transition: all 0.2s; }
+        .medida-chip:hover { border-color: var(--primary-light); }
+        .medida-chip.selected { background: var(--success); border-color: var(--success); color: white; }
+        .toggle-section { display: flex; align-items: center; gap: 10px; padding: 12px; background: var(--bg-input); border-radius: 8px; margin-bottom: 12px; }
+        .toggle-switch { width: 44px; height: 24px; background: var(--border); border-radius: 12px; cursor: pointer; position: relative; transition: all 0.2s; }
+        .toggle-switch.active { background: var(--success); }
+        .toggle-switch::after { content: ''; position: absolute; width: 18px; height: 18px; background: white; border-radius: 50%; top: 3px; left: 3px; transition: all 0.2s; }
+        .toggle-switch.active::after { left: 23px; }
+        @media (max-width: 768px) { .sidebar { width: 60px; } .sidebar span:last-child { display: none; } .main { margin-left: 60px; } }
+    </style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect } = React;
+
+const APP_VERSION = '8.3';
+const LOCAL_STORAGE_PREFIX = 'aet_v8_';
+const COPYRIGHT = '© 2026 RC Engenharia - Todos os direitos reservados';
+
+const genId = () => Math.random().toString(36).substr(2, 9);
+const fmtDate = d => d ? new Date(d).toLocaleDateString('pt-BR') : '';
+const hashPassword = (pwd) => { let hash = 0; for (let i = 0; i < pwd.length; i++) { hash = ((hash << 5) - hash) + pwd.charCodeAt(i); hash = hash & hash; } return hash.toString(36); };
+const save = (k, d) => { try { localStorage.setItem(LOCAL_STORAGE_PREFIX + k, JSON.stringify(d)); } catch(e) {} };
+const load = (k, d) => { try { const v = localStorage.getItem(LOCAL_STORAGE_PREFIX + k); return v ? JSON.parse(v) : d; } catch(e) { return d; } };
+
+const ensureArray = (value) => {
+    if (!value) return [];
+    if (Array.isArray(value)) return value.filter(item => item && typeof item === 'string' && item.trim().length > 0);
+    if (typeof value === 'string' && value.trim().length > 0) return [value.trim()];
+    return [];
+};
+
+const formatListForPDF = (arr, customField, separator = ', ') => {
+    let items = ensureArray(arr);
+    if (customField && typeof customField === 'string' && customField.trim()) {
+        const customItems = customField.split(',').map(s => s.trim()).filter(s => s.length > 0);
+        items = [...items, ...customItems];
+    }
+    items = [...new Set(items)];
+    return items.length > 0 ? items.join(separator) : 'Não informado';
+};
+
+// Máscaras de formatação
+const maskCNPJ = (v) => {
+    const nums = v.replace(/\D/g, '').slice(0, 14);
+    return nums.replace(/^(\d{2})(\d)/, '$1.$2')
+               .replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3')
+               .replace(/\.(\d{3})(\d)/, '.$1/$2')
+               .replace(/(\d{4})(\d)/, '$1-$2');
+};
+
+const maskTelefone = (v) => {
+    const nums = v.replace(/\D/g, '').slice(0, 11);
+    if (nums.length <= 10) {
+        return nums.replace(/^(\d{2})(\d)/, '($1) $2').replace(/(\d{4})(\d)/, '$1-$2');
+    }
+    return nums.replace(/^(\d{2})(\d)/, '($1) $2').replace(/(\d{5})(\d)/, '$1-$2');
+};
+
+function MaskedInput({ value, onChange, mask, placeholder, className }) {
+    const handleChange = (e) => {
+        let newValue = e.target.value;
+        if (mask === 'cnpj') newValue = maskCNPJ(newValue);
+        else if (mask === 'telefone') newValue = maskTelefone(newValue);
+        onChange(newValue);
+    };
+    const getPlaceholder = () => {
+        if (placeholder) return placeholder;
+        if (mask === 'cnpj') return '00.000.000/0001-00';
+        if (mask === 'telefone') return '(00) 00000-0000';
+        return '';
+    };
+    return <input className={className || 'form-input'} value={value || ''} onChange={handleChange} placeholder={getPlaceholder()} />;
+}
+
+// ==================== DADOS ====================
+const NHO11 = [
+    { id: 'escritorio', nome: 'Escritório geral', lux: 500 },
+    { id: 'arquivo', nome: 'Arquivo/Almoxarifado', lux: 300 },
+    { id: 'recepcao', nome: 'Recepção', lux: 300 },
+    { id: 'reuniao', nome: 'Sala de reuniões', lux: 300 },
+    { id: 'desenho', nome: 'Desenho técnico/CAD', lux: 750 },
+    { id: 'comercio', nome: 'Comércio/Vendas', lux: 300 },
+    { id: 'checkout', nome: 'Checkout/Caixa', lux: 500 },
+    { id: 'deposito', nome: 'Depósito', lux: 150 },
+    { id: 'ind_grosseiro', nome: 'Indústria - grosseiro', lux: 200 },
+    { id: 'ind_medio', nome: 'Indústria - médio', lux: 300 },
+    { id: 'ind_fino', nome: 'Indústria - fino', lux: 500 },
+    { id: 'laboratorio', nome: 'Laboratório', lux: 500 },
+    { id: 'cozinha', nome: 'Cozinha', lux: 500 },
+    { id: 'circulacao', nome: 'Circulação', lux: 100 },
+    { id: 'outro', nome: 'Outro', lux: 0 }
+];
+
+const DEMANDAS = [
+    { id: 1, t: 'Atendimento à NR-17 e eSocial', d: 'Elaboração da AET para cumprimento das exigências legais.' },
+    { id: 2, t: 'Notificação MTE', d: 'Resposta a notificação do auditor fiscal.' },
+    { id: 3, t: 'Queixas osteomusculares', d: 'Investigação de dores ou LER/DORT.' },
+    { id: 4, t: 'Recomendação do PCMSO', d: 'Indicação do médico do trabalho.' },
+    { id: 5, t: 'Novo posto de trabalho', d: 'Análise preventiva.' },
+    { id: 6, t: 'Modernização/reforma', d: 'Avaliação para mudança de layout.' },
+    { id: 7, t: 'Programa de QVT', d: 'Qualidade de vida no trabalho.' }
+];
+
+const OBJETIVOS = [
+    'Identificar e avaliar riscos ergonômicos',
+    'Propor medidas de adequação conforme NR-17',
+    'Atender requisitos legais (NR-17/NR-01)',
+    'Subsidiar adequação do mobiliário',
+    'Prevenir LER/DORT e distúrbios osteomusculares',
+    'Melhorar condições de trabalho e produtividade',
+    'Integrar ao PGR conforme NR-01',
+    'Subsidiar programas de treinamento'
+];
+
+const REGIMES = ['CLT 5x2 (seg-sex)', 'CLT 6x1', '12x36 diurno', '12x36 noturno', 'Turno manhã', 'Turno tarde', 'Turno noite', 'Turno rotativo', 'Horário flexível', 'Home office', 'Híbrido'];
+const MODOS = ['Trabalho em computador', 'Sentado posto fixo', 'Em pé com deslocamentos', 'Alternado sentado/em pé', 'Operação de máquinas', 'Linha de produção', 'Atendimento ao público', 'Trabalho externo'];
+const RITMOS = ['Leve', 'Normal', 'Moderado', 'Intenso', 'Variável', 'Imposto por máquina'];
+const PAUSAS = ['1h almoço', '15min manhã', '15min tarde', '10min/50min NR-17', '20min/1h40 teleatendimento', 'Ginástica laboral', 'Pausas fisiológicas', 'Micropausas'];
+const VENTILACOES = ['Natural adequada', 'Natural insuficiente', 'Ar condicionado central', 'Ar condicionado split', 'Ventiladores', 'Exaustores', 'Climatizadores'];
+const MOBILIARIOS = ['Cadeira giratória regulável', 'Cadeira com apoio lombar', 'Cadeira com apoio de braços', 'Mesa altura fixa', 'Mesa regulável em altura', 'Apoio para pés', 'Suporte para monitor', 'Suporte para notebook', 'Apoio de punho teclado', 'Apoio de punho mouse'];
+const EQUIPAMENTOS = ['Computador desktop', 'Notebook', 'Monitor único', 'Dois monitores', 'Teclado convencional', 'Teclado ergonômico', 'Mouse convencional', 'Mouse ergonômico', 'Headset', 'Telefone fixo', 'Impressora', 'Ferramentas manuais'];
+
+const POSTURAS = [
+    { id: 'sentado', l: 'Sentado', i: '🪑' },
+    { id: 'em_pe', l: 'Em pé', i: '🧍' },
+    { id: 'andando', l: 'Andando', i: '🚶' },
+    { id: 'agachado', l: 'Agachado', i: '⬇️' },
+    { id: 'flexao', l: 'Flexão tronco', i: '↩️' },
+    { id: 'rotacao', l: 'Rotação', i: '🔄' },
+    { id: 'bracos', l: 'Braços elevados', i: '🙋' },
+    { id: 'estatica', l: 'Estática prolongada', i: '⏸️' }
+];
+
+const MOVIMENTOS = [
+    { id: 'digitacao', l: 'Digitação', i: '⌨️' },
+    { id: 'mouse', l: 'Uso de mouse', i: '🖱️' },
+    { id: 'pegar', l: 'Pegar objetos', i: '✊' },
+    { id: 'apertar', l: 'Apertar/pressionar', i: '🔘' },
+    { id: 'girar', l: 'Girar punho', i: '🔃' },
+    { id: 'pincar', l: 'Pinçar', i: '🤏' },
+    { id: 'levantar', l: 'Levantar cargas', i: '📦' }
+];
+
+const FERRAMENTAS = [
+    { id: 'rula', cat: 'Postural', nome: 'RULA', desc: 'Membros superiores', nbr: 'ISO 11226' },
+    { id: 'reba', cat: 'Postural', nome: 'REBA', desc: 'Corpo inteiro', nbr: 'ISO 11226' },
+    { id: 'niosh', cat: 'Cargas', nome: 'NIOSH', desc: 'Levantamento manual' },
+    { id: 'strain', cat: 'Repetitivo', nome: 'Strain Index', desc: 'Sobrecarga MS' },
+    { id: 'nasa', cat: 'Cognitivo', nome: 'NASA-TLX', desc: 'Carga mental', nbr: 'ISO 10075-3' },
+    { id: 'rosa', cat: 'Escritório', nome: 'ROSA', desc: 'Posto de escritório', nbr: 'NBR 13962' }
+];
+
+// Medidas de controle pré-definidas
+const MEDIDAS_CONTROLE = [
+    'Pausas programadas conforme NR-17',
+    'Ginástica laboral',
+    'Rodízio de atividades',
+    'Cadeira ergonômica com regulagens',
+    'Apoio para pés',
+    'Suporte de monitor ajustável',
+    'Apoio de punho para teclado/mouse',
+    'Treinamento postural',
+    'Orientação sobre organização do trabalho',
+    'Avaliação médica periódica',
+    'Mobiliário conforme NBR 13962',
+    'Equipamentos de auxílio mecânico',
+    'Iluminação adequada (NHO-11)',
+    'Climatização adequada',
+    'Nenhuma medida implementada'
+];
+
+const SEVERIDADE = [{ id: 1, n: 'Insignificante' }, { id: 2, n: 'Menor' }, { id: 3, n: 'Moderada' }, { id: 4, n: 'Grave' }, { id: 5, n: 'Catastrófica' }];
+const PROBABILIDADE = [{ id: 1, n: 'Rara' }, { id: 2, n: 'Improvável' }, { id: 3, n: 'Possível' }, { id: 4, n: 'Provável' }, { id: 5, n: 'Quase Certa' }];
+const MATRIZ = [[1,2,3,4,5],[2,4,6,8,10],[3,6,9,12,15],[4,8,12,16,20],[5,10,15,20,25]];
+const NIVEIS = [
+    { min: 1, max: 4, n: 'Trivial', c: '#22c55e', pr: 'Monitoramento contínuo' },
+    { min: 5, max: 8, n: 'Tolerável', c: '#84cc16', pr: '12 meses' },
+    { min: 9, max: 12, n: 'Moderado', c: '#eab308', pr: '6 meses' },
+    { min: 15, max: 16, n: 'Substancial', c: '#f97316', pr: '3 meses' },
+    { min: 20, max: 25, n: 'Intolerável', c: '#ef4444', pr: 'Imediato' }
+];
+
+const PERIGOS = [
+    { id: 'postura_sentada', cat: 'Biomecânico', p: 'Postura sentada prolongada', c: 'Lombalgia, cervicalgia, fadiga muscular' },
+    { id: 'postura_pe', cat: 'Biomecânico', p: 'Postura em pé prolongada', c: 'Fadiga, dores em membros inferiores, varizes' },
+    { id: 'flexao_tronco', cat: 'Biomecânico', p: 'Flexão frequente do tronco', c: 'Hérnia de disco, lombalgia crônica' },
+    { id: 'mov_repetitivo', cat: 'Biomecânico', p: 'Movimentos repetitivos de MS', c: 'LER/DORT, tendinite, síndrome do túnel do carpo' },
+    { id: 'digitacao', cat: 'Biomecânico', p: 'Digitação intensiva', c: 'Tenossinovite, síndrome do túnel do carpo' },
+    { id: 'levantamento', cat: 'Biomecânico', p: 'Levantamento manual de cargas', c: 'Lombalgia, hérnia de disco, lesões musculares' },
+    { id: 'mobiliario', cat: 'Mobiliário', p: 'Mobiliário inadequado', c: 'Desconforto postural, dores musculoesqueléticas' },
+    { id: 'monitor', cat: 'Mobiliário', p: 'Monitor mal posicionado', c: 'Cervicalgia, fadiga visual, cefaleia' },
+    { id: 'iluminacao', cat: 'Ambiental', p: 'Iluminação inadequada', c: 'Fadiga visual, cefaleia, erros operacionais' },
+    { id: 'temperatura', cat: 'Ambiental', p: 'Temperatura desconfortável', c: 'Desconforto térmico, queda de produtividade' },
+    { id: 'ruido', cat: 'Ambiental', p: 'Ruído acima do conforto', c: 'Estresse, dificuldade de concentração' },
+    { id: 'ritmo', cat: 'Organizacional', p: 'Ritmo de trabalho intenso', c: 'Estresse ocupacional, fadiga crônica, burnout' },
+    { id: 'pausas', cat: 'Organizacional', p: 'Pausas insuficientes', c: 'Fadiga muscular, LER/DORT' }
+];
+
+const getNivel = v => NIVEIS.find(n => v >= n.min && v <= n.max) || NIVEIS[0];
+const checkIlum = (v, amb) => { if (!v || !amb || amb === 'outro') return null; const lux = parseFloat(v); const min = NHO11.find(a => a.id === amb)?.lux || 500; return lux >= min ? { s: 'success', m: `✓ ATENDE NHO-11 (mín ${min} lux)` } : { s: 'danger', m: `✗ NÃO ATENDE (mín ${min} lux)` }; };
+const checkTemp = (v) => { if (!v) return null; const t = parseFloat(v); if (t >= 18 && t <= 25) return { s: 'success', m: '✓ ATENDE NR-17 (18-25°C)' }; return { s: 'danger', m: '✗ NÃO ATENDE NR-17' }; };
+const checkRuido = (v) => { if (!v) return null; const db = parseFloat(v); if (db <= 65) return { s: 'success', m: '✓ ATENDE NBR 10152 (≤65 dB)' }; return { s: 'warning', m: '⚠ ACIMA do conforto acústico' }; };
+
+// ==================== LOGIN ====================
+function LoginScreen({ onLogin }) {
+    const [mode, setMode] = useState('login');
+    const [username, setUsername] = useState('');
+    const [password, setPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const [error, setError] = useState('');
+    
+    const handleLogin = () => {
+        setError('');
+        if (!username || !password) { setError('Preencha usuário e senha'); return; }
+        const users = load('users', {});
+        if (!users[username]) { setError('Usuário não encontrado'); return; }
+        if (users[username].password !== hashPassword(password)) { setError('Senha incorreta'); return; }
+        const session = { username, loginTime: Date.now() };
+        save('session', session);
+        onLogin(session);
+    };
+    
+    const handleRegister = () => {
+        setError('');
+        if (!username || !password) { setError('Preencha todos os campos'); return; }
+        if (password.length < 4) { setError('Senha deve ter pelo menos 4 caracteres'); return; }
+        if (password !== confirmPassword) { setError('Senhas não conferem'); return; }
+        const users = load('users', {});
+        if (users[username]) { setError('Usuário já existe'); return; }
+        users[username] = { password: hashPassword(password), createdAt: Date.now() };
+        save('users', users);
+        const session = { username, loginTime: Date.now() };
+        save('session', session);
+        onLogin(session);
+    };
+    
+    return (
+        <div className="login-container">
+            <div className="login-box">
+                <div className="login-logo"><h1>🔧 AET System</h1><p>Análise Ergonômica do Trabalho</p></div>
+                <div className="login-tabs">
+                    <div className={`login-tab ${mode === 'login' ? 'active' : ''}`} onClick={() => setMode('login')}>Entrar</div>
+                    <div className={`login-tab ${mode === 'register' ? 'active' : ''}`} onClick={() => setMode('register')}>Cadastrar</div>
+                </div>
+                {error && <div className="login-error">{error}</div>}
+                {mode === 'login' ? (
+                    <div className="login-form">
+                        <input className="login-input" placeholder="Usuário" value={username} onChange={e => setUsername(e.target.value)} onKeyPress={e => e.key === 'Enter' && handleLogin()} />
+                        <input className="login-input" type="password" placeholder="Senha" value={password} onChange={e => setPassword(e.target.value)} onKeyPress={e => e.key === 'Enter' && handleLogin()} />
+                        <button className="login-btn" onClick={handleLogin}>🔐 Entrar</button>
+                    </div>
+                ) : (
+                    <div className="login-form">
+                        <input className="login-input" placeholder="Nome de usuário" value={username} onChange={e => setUsername(e.target.value)} />
+                        <input className="login-input" type="password" placeholder="Senha (mín. 4 caracteres)" value={password} onChange={e => setPassword(e.target.value)} />
+                        <input className="login-input" type="password" placeholder="Confirmar senha" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} />
+                        <button className="login-btn" onClick={handleRegister}>✨ Criar Conta</button>
+                    </div>
+                )}
+                <div className="storage-info"><h4>ℹ️ Armazenamento</h4><p>Dados salvos localmente. Use Backup para transferir.</p></div>
+                <div style={{textAlign:'center', marginTop:'20px', fontSize:'0.65rem', color:'var(--text-secondary)'}}>{COPYRIGHT}</div>
+            </div>
+        </div>
+    );
+}
+
+// ==================== COMPONENTES ====================
+function MultiSelectCustom({ items, selected, setSelected, customValue, setCustomValue, label }) {
+    const sel = ensureArray(selected);
+    const toggleArray = (arr, item) => arr.includes(item) ? arr.filter(i => i !== item) : [...arr, item];
+    return (
+        <div>
+            <div className="section-title">{label}</div>
+            <div className="multi-select">
+                {items.map(item => (
+                    <div key={item} className={`multi-item ${sel.includes(item) ? 'selected' : ''}`} onClick={() => setSelected(toggleArray(sel, item))}>
+                        <span style={{opacity: sel.includes(item) ? 1 : 0}}>✓</span>
+                        <span>{item}</span>
+                    </div>
+                ))}
+            </div>
+            <div className="custom-field">
+                <div className="custom-field-label">✏️ Outro (especificar)</div>
+                <input className="form-input" value={customValue || ''} onChange={e => setCustomValue(e.target.value)} placeholder="Opções adicionais separadas por vírgula..." style={{width: '100%'}} />
+            </div>
+        </div>
+    );
+}
+
+// Calculadoras simplificadas
+function RulaCalc({ onSave, onClose }) {
+    const [d, setD] = useState({ ua: 1, la: 1, w: 1, n: 1, t: 1, l: 1, mu: false, f: 0 });
+    const sc = Math.min(Math.max(Math.ceil((Math.min(d.ua + d.la + d.w, 8) + Math.min(d.n + d.t + d.l, 9)) / 2) + (d.mu ? 1 : 0) + d.f, 1), 7);
+    const risk = sc <= 2 ? { l: 'Aceitável', c: 'score-green', a: 'Postura aceitável' } : sc <= 4 ? { l: 'Investigar', c: 'score-yellow', a: 'Investigar mudanças' } : sc <= 6 ? { l: 'Intervir Breve', c: 'score-orange', a: 'Mudanças em breve' } : { l: 'Intervir Já', c: 'score-red', a: 'Mudanças imediatas' };
+    return (
+        <div>
+            <div className="section-title">RULA - Membros Superiores (ISO 11226)</div>
+            <div className="calc-grid">
+                <div className="calc-item"><label>Braço</label><select value={d.ua} onChange={e => setD({...d, ua: +e.target.value})}><option value={1}>-20° a 20°</option><option value={2}>&gt;20° ext ou 20-45°</option><option value={3}>45-90°</option><option value={4}>&gt;90°</option></select></div>
+                <div className="calc-item"><label>Antebraço</label><select value={d.la} onChange={e => setD({...d, la: +e.target.value})}><option value={1}>60-100°</option><option value={2}>&lt;60° ou &gt;100°</option></select></div>
+                <div className="calc-item"><label>Punho</label><select value={d.w} onChange={e => setD({...d, w: +e.target.value})}><option value={1}>Neutro</option><option value={2}>0-15°</option><option value={3}>&gt;15°</option></select></div>
+                <div className="calc-item"><label>Pescoço</label><select value={d.n} onChange={e => setD({...d, n: +e.target.value})}><option value={1}>0-10°</option><option value={2}>10-20°</option><option value={3}>&gt;20°</option><option value={4}>Extensão</option></select></div>
+                <div className="calc-item"><label>Tronco</label><select value={d.t} onChange={e => setD({...d, t: +e.target.value})}><option value={1}>Apoiado</option><option value={2}>0-20°</option><option value={3}>20-60°</option><option value={4}>&gt;60°</option></select></div>
+                <div className="calc-item"><label>Pernas</label><select value={d.l} onChange={e => setD({...d, l: +e.target.value})}><option value={1}>Apoiadas</option><option value={2}>Não apoiadas</option></select></div>
+            </div>
+            <div className={`result-box ${risk.c}`}><div className="result-score">{sc}</div><div className="result-level">{risk.l}</div><div className="result-desc">{risk.a}</div></div>
+            <div className="modal-footer"><button className="btn btn-secondary" onClick={onClose}>Fechar</button><button className="btn btn-primary" onClick={() => onSave({tool:'RULA', score: sc, risk, nbr: 'ABNT NBR ISO 11226'})}>💾 Salvar</button></div>
+        </div>
+    );
+}
+
+function RebaCalc({ onSave, onClose }) {
+    const [d, setD] = useState({ neck: 1, trunk: 1, legs: 1, upperArm: 1, lowerArm: 1, wrist: 1, load: 0, coupling: 0 });
+    const sc = Math.min(Math.ceil((d.neck + d.trunk + d.legs + d.upperArm + d.lowerArm + d.wrist) / 2) + d.load + d.coupling, 15);
+    const risk = sc <= 3 ? { l: 'Baixo', c: 'score-green', a: 'Não necessária' } : sc <= 7 ? { l: 'Médio', c: 'score-yellow', a: 'Necessária' } : sc <= 10 ? { l: 'Alto', c: 'score-orange', a: 'Em breve' } : { l: 'Muito Alto', c: 'score-red', a: 'Imediatamente' };
+    return (
+        <div>
+            <div className="section-title">REBA - Corpo Inteiro (ISO 11226)</div>
+            <div className="calc-grid">
+                <div className="calc-item"><label>Pescoço</label><select value={d.neck} onChange={e => setD({...d, neck: +e.target.value})}><option value={1}>0-20°</option><option value={2}>&gt;20°</option><option value={3}>+torção</option></select></div>
+                <div className="calc-item"><label>Tronco</label><select value={d.trunk} onChange={e => setD({...d, trunk: +e.target.value})}><option value={1}>Ereto</option><option value={2}>0-20°</option><option value={3}>20-60°</option><option value={4}>&gt;60°</option></select></div>
+                <div className="calc-item"><label>Pernas</label><select value={d.legs} onChange={e => setD({...d, legs: +e.target.value})}><option value={1}>Bilateral</option><option value={2}>Unilateral</option><option value={3}>Flexão</option></select></div>
+                <div className="calc-item"><label>Braço</label><select value={d.upperArm} onChange={e => setD({...d, upperArm: +e.target.value})}><option value={1}>-20° a 20°</option><option value={2}>20-45°</option><option value={3}>45-90°</option><option value={4}>&gt;90°</option></select></div>
+                <div className="calc-item"><label>Antebraço</label><select value={d.lowerArm} onChange={e => setD({...d, lowerArm: +e.target.value})}><option value={1}>60-100°</option><option value={2}>&lt;60° ou &gt;100°</option></select></div>
+                <div className="calc-item"><label>Punho</label><select value={d.wrist} onChange={e => setD({...d, wrist: +e.target.value})}><option value={1}>-15° a 15°</option><option value={2}>&gt;15°</option></select></div>
+            </div>
+            <div className={`result-box ${risk.c}`}><div className="result-score">{sc}</div><div className="result-level">{risk.l}</div><div className="result-desc">{risk.a}</div></div>
+            <div className="modal-footer"><button className="btn btn-secondary" onClick={onClose}>Fechar</button><button className="btn btn-primary" onClick={() => onSave({tool:'REBA', score: sc, risk, nbr: 'ABNT NBR ISO 11226'})}>💾 Salvar</button></div>
+        </div>
+    );
+}
+
+function NioshCalc({ onSave, onClose }) {
+    const [d, setD] = useState({ h: 25, v: 75, di: 25, a: 0, f: 1, c: 'good', load: 10 });
+    const rwl = 23 * Math.min(1, 25/Math.max(d.h,25)) * Math.min(1, 1-0.003*Math.abs(d.v-75)) * Math.min(1, 0.82+4.5/Math.max(d.di,25)) * (1-0.0032*Math.min(d.a,135)) * Math.max(0.1, 1-0.05*d.f) * ({good:1,fair:0.95,poor:0.9}[d.c]||0.9);
+    const li = d.load / rwl;
+    const risk = li <= 1 ? { l: 'Aceitável', c: 'score-green', a: 'Baixo risco' } : li <= 2 ? { l: 'Aumentado', c: 'score-yellow', a: 'Risco moderado' } : li <= 3 ? { l: 'Alto', c: 'score-orange', a: 'Alto risco' } : { l: 'Muito Alto', c: 'score-red', a: 'Inaceitável' };
+    return (
+        <div>
+            <div className="section-title">NIOSH - Levantamento Manual de Cargas</div>
+            <div className="calc-grid">
+                <div className="calc-item"><label>Peso (kg)</label><input type="number" value={d.load} onChange={e => setD({...d, load: +e.target.value || 0})} /></div>
+                <div className="calc-item"><label>H - Dist. Horizontal (cm)</label><input type="number" value={d.h} onChange={e => setD({...d, h: +e.target.value || 25})} /></div>
+                <div className="calc-item"><label>V - Altura inicial (cm)</label><input type="number" value={d.v} onChange={e => setD({...d, v: +e.target.value || 75})} /></div>
+                <div className="calc-item"><label>D - Deslocamento (cm)</label><input type="number" value={d.di} onChange={e => setD({...d, di: +e.target.value || 25})} /></div>
+                <div className="calc-item"><label>A - Ângulo (°)</label><input type="number" value={d.a} onChange={e => setD({...d, a: +e.target.value || 0})} /></div>
+                <div className="calc-item"><label>F - Frequência/min</label><input type="number" value={d.f} onChange={e => setD({...d, f: +e.target.value || 1})} /></div>
+                <div className="calc-item"><label>Qualidade da Pega</label><select value={d.c} onChange={e => setD({...d, c: e.target.value})}><option value="good">Boa</option><option value="fair">Regular</option><option value="poor">Ruim</option></select></div>
+            </div>
+            <div className="card" style={{textAlign:'center',marginTop:12}}><strong>LPR: {rwl.toFixed(1)} kg</strong></div>
+            <div className={`result-box ${risk.c}`}><div className="result-score">IL: {li.toFixed(2)}</div><div className="result-level">{risk.l}</div><div className="result-desc">{risk.a}</div></div>
+            <div className="modal-footer"><button className="btn btn-secondary" onClick={onClose}>Fechar</button><button className="btn btn-primary" onClick={() => onSave({tool:'NIOSH', score: li.toFixed(2), lpr: rwl.toFixed(1), risk})}>💾 Salvar</button></div>
+        </div>
+    );
+}
+
+function StrainCalc({ onSave, onClose }) {
+    const [d, setD] = useState({ intensity: 1, duration: 1, efforts: 1, posture: 1, speed: 1, hours: 1 });
+    const si = [0,1,3,6,9,13][d.intensity] * [0,0.5,1,1.5,2,3][d.duration] * [0,0.5,1,1.5,2,3][d.efforts] * [0,1,1,1.5,2,3][d.posture] * [0,1,1,1,1.5,2][d.speed] * [0,0.25,0.5,0.75,1,1.5][d.hours];
+    const risk = si < 3 ? { l: 'Seguro', c: 'score-green', a: 'Tarefa segura' } : si < 7 ? { l: 'Incerto', c: 'score-yellow', a: 'Zona de incerteza' } : { l: 'Risco', c: 'score-red', a: 'Risco de LER/DORT' };
+    return (
+        <div>
+            <div className="section-title">Strain Index - Sobrecarga em MS</div>
+            <div className="calc-grid">
+                <div className="calc-item"><label>Intensidade</label><select value={d.intensity} onChange={e => setD({...d, intensity: +e.target.value})}><option value={1}>Leve</option><option value={2}>Pouco difícil</option><option value={3}>Difícil</option><option value={4}>Muito difícil</option><option value={5}>Máximo</option></select></div>
+                <div className="calc-item"><label>Duração</label><select value={d.duration} onChange={e => setD({...d, duration: +e.target.value})}><option value={1}>&lt;10%</option><option value={2}>10-29%</option><option value={3}>30-49%</option><option value={4}>50-79%</option><option value={5}>≥80%</option></select></div>
+                <div className="calc-item"><label>Esforços/min</label><select value={d.efforts} onChange={e => setD({...d, efforts: +e.target.value})}><option value={1}>&lt;4</option><option value={2}>4-8</option><option value={3}>9-14</option><option value={4}>15-19</option><option value={5}>≥20</option></select></div>
+                <div className="calc-item"><label>Postura</label><select value={d.posture} onChange={e => setD({...d, posture: +e.target.value})}><option value={1}>Muito boa</option><option value={2}>Boa</option><option value={3}>Regular</option><option value={4}>Ruim</option><option value={5}>Muito ruim</option></select></div>
+                <div className="calc-item"><label>Velocidade</label><select value={d.speed} onChange={e => setD({...d, speed: +e.target.value})}><option value={1}>Muito lenta</option><option value={2}>Lenta</option><option value={3}>Regular</option><option value={4}>Rápida</option><option value={5}>Muito rápida</option></select></div>
+                <div className="calc-item"><label>Horas/dia</label><select value={d.hours} onChange={e => setD({...d, hours: +e.target.value})}><option value={1}>&lt;1h</option><option value={2}>1-2h</option><option value={3}>2-4h</option><option value={4}>4-8h</option><option value={5}>&gt;8h</option></select></div>
+            </div>
+            <div className={`result-box ${risk.c}`}><div className="result-score">{si.toFixed(1)}</div><div className="result-level">{risk.l}</div><div className="result-desc">{risk.a}</div></div>
+            <div className="modal-footer"><button className="btn btn-secondary" onClick={onClose}>Fechar</button><button className="btn btn-primary" onClick={() => onSave({tool:'Strain Index', score: si.toFixed(1), risk})}>💾 Salvar</button></div>
+        </div>
+    );
+}
+
+function NasaCalc({ onSave, onClose }) {
+    const [d, setD] = useState({ mental: 50, fisica: 50, temporal: 50, performance: 50, esforco: 50, frustracao: 50 });
+    const media = (d.mental + d.fisica + d.temporal + d.performance + d.esforco + d.frustracao) / 6;
+    const risk = media <= 30 ? { l: 'Baixa', c: 'score-green', a: 'Carga aceitável' } : media <= 50 ? { l: 'Moderada', c: 'score-yellow', a: 'Monitorar' } : media <= 70 ? { l: 'Alta', c: 'score-orange', a: 'Intervenção' } : { l: 'Muito Alta', c: 'score-red', a: 'Ação urgente' };
+    const dims = [{k:'mental',l:'Mental'},{k:'fisica',l:'Física'},{k:'temporal',l:'Temporal'},{k:'performance',l:'Performance'},{k:'esforco',l:'Esforço'},{k:'frustracao',l:'Frustração'}];
+    return (
+        <div>
+            <div className="section-title">NASA-TLX - Carga Mental (ISO 10075-3)</div>
+            {dims.map(dim => (<div key={dim.k} style={{marginBottom:10}}><label style={{fontSize:'0.75rem'}}>{dim.l}: <strong>{d[dim.k]}</strong></label><input type="range" min="0" max="100" value={d[dim.k]} onChange={e => setD({...d, [dim.k]: +e.target.value})} style={{width:'100%'}} /></div>))}
+            <div className={`result-box ${risk.c}`}><div className="result-score">{media.toFixed(0)}</div><div className="result-level">Carga {risk.l}</div><div className="result-desc">{risk.a}</div></div>
+            <div className="modal-footer"><button className="btn btn-secondary" onClick={onClose}>Fechar</button><button className="btn btn-primary" onClick={() => onSave({tool:'NASA-TLX', score: media.toFixed(0), risk, nbr: 'ABNT NBR ISO 10075-3'})}>💾 Salvar</button></div>
+        </div>
+    );
+}
+
+function RosaCalc({ onSave, onClose }) {
+    const [d, setD] = useState({ chair: 3, monitor: 3, mouse: 3, keyboard: 3 });
+    const score = Math.ceil((d.chair + Math.max(d.monitor, Math.max(d.mouse, d.keyboard))) / 2);
+    const risk = score <= 3 ? { l: 'Baixo', c: 'score-green', a: 'Adequado' } : score <= 5 ? { l: 'Médio', c: 'score-yellow', a: 'Melhorias' } : { l: 'Alto', c: 'score-red', a: 'Intervenção' };
+    return (
+        <div>
+            <div className="section-title">ROSA - Posto de Escritório (NBR 13962)</div>
+            <div className="calc-grid">
+                <div className="calc-item"><label>Cadeira</label><select value={d.chair} onChange={e => setD({...d, chair: +e.target.value})}><option value={1}>Excelente</option><option value={2}>Boa</option><option value={3}>Regular</option><option value={4}>Ruim</option><option value={5}>Péssima</option></select></div>
+                <div className="calc-item"><label>Monitor</label><select value={d.monitor} onChange={e => setD({...d, monitor: +e.target.value})}><option value={1}>Excelente</option><option value={2}>Bom</option><option value={3}>Regular</option><option value={4}>Ruim</option><option value={5}>Péssimo</option></select></div>
+                <div className="calc-item"><label>Mouse</label><select value={d.mouse} onChange={e => setD({...d, mouse: +e.target.value})}><option value={1}>Excelente</option><option value={2}>Bom</option><option value={3}>Regular</option><option value={4}>Ruim</option><option value={5}>Péssimo</option></select></div>
+                <div className="calc-item"><label>Teclado</label><select value={d.keyboard} onChange={e => setD({...d, keyboard: +e.target.value})}><option value={1}>Excelente</option><option value={2}>Bom</option><option value={3}>Regular</option><option value={4}>Ruim</option><option value={5}>Péssimo</option></select></div>
+            </div>
+            <div className={`result-box ${risk.c}`}><div className="result-score">{score}</div><div className="result-level">{risk.l}</div><div className="result-desc">{risk.a}</div></div>
+            <div className="modal-footer"><button className="btn btn-secondary" onClick={onClose}>Fechar</button><button className="btn btn-primary" onClick={() => onSave({tool:'ROSA', score, risk, nbr: 'NBR 13962'})}>💾 Salvar</button></div>
+        </div>
+    );
+}
+
+function MatrizRiscoSelector({ value, onChange }) {
+    const [prob, setProb] = useState(value?.prob || 1);
+    const [sev, setSev] = useState(value?.sev || 1);
+    useEffect(() => { const v = MATRIZ[prob-1][sev-1]; const nivel = getNivel(v); onChange({ prob, sev, valor: v, nivel: nivel.n, cor: nivel.c, prazo: nivel.pr }); }, [prob, sev]);
+    const risco = MATRIZ[prob-1][sev-1]; const nivel = getNivel(risco);
+    return (
+        <div>
+            <div className="form-grid">
+                <div className="form-group"><label className="form-label">Probabilidade</label><select className="form-select" value={prob} onChange={e => setProb(+e.target.value)}>{PROBABILIDADE.map(p => <option key={p.id} value={p.id}>{p.id} - {p.n}</option>)}</select></div>
+                <div className="form-group"><label className="form-label">Severidade</label><select className="form-select" value={sev} onChange={e => setSev(+e.target.value)}>{SEVERIDADE.map(s => <option key={s.id} value={s.id}>{s.id} - {s.n}</option>)}</select></div>
+            </div>
+            <div className="risco-resultado" style={{background: nivel.c, color:'#000'}}><div className="risco-valor">{risco}</div><div className="risco-nivel">Risco {nivel.n}</div><div className="risco-acao">Prazo: {nivel.pr}</div></div>
+        </div>
+    );
+}
+
+function InventarioRiscos({ riscos, setRiscos }) {
+    const [showModal, setShowModal] = useState(false);
+    const [editing, setEditing] = useState(null);
+    const [form, setForm] = useState({ perigoId: '', perigoCustom: '', fonte: '', medidas: [], medidasCustom: '', risco: null });
+    
+    const toggleMedida = (medida) => {
+        const current = ensureArray(form.medidas);
+        setForm({...form, medidas: current.includes(medida) ? current.filter(m => m !== medida) : [...current, medida]});
+    };
+    
+    const openAdd = () => { setEditing(null); setForm({ perigoId: '', perigoCustom: '', fonte: '', medidas: [], medidasCustom: '', risco: null }); setShowModal(true); };
+    
+    const openEdit = (r) => {
+        setEditing(r);
+        const perigoObj = PERIGOS.find(p => p.p === r.perigo);
+        let medidasArr = [];
+        if (r.medidas && typeof r.medidas === 'string') {
+            medidasArr = r.medidas.split(';').map(m => m.trim()).filter(m => MEDIDAS_CONTROLE.includes(m));
+        }
+        setForm({ 
+            perigoId: perigoObj?.id || '', 
+            perigoCustom: perigoObj ? '' : r.perigo, 
+            fonte: r.fonte || '', 
+            medidas: medidasArr,
+            medidasCustom: '',
+            risco: { prob: r.prob, sev: r.sev, valor: r.valor, nivel: r.nivel, cor: r.cor, prazo: r.prazo }
+        });
+        setShowModal(true);
+    };
+    
+    const handleSave = () => { 
+        const perigo = PERIGOS.find(p => p.id === form.perigoId); 
+        const medidasTexto = formatListForPDF(form.medidas, form.medidasCustom, '; ');
+        const newRisco = { 
+            id: editing?.id || genId(), 
+            perigo: perigo?.p || form.perigoCustom, 
+            categoria: perigo?.cat || 'Outro', 
+            consequencia: perigo?.c || '', 
+            fonte: form.fonte, 
+            medidas: medidasTexto,
+            ...form.risco 
+        };
+        if (editing) {
+            setRiscos(riscos.map(r => r.id === editing.id ? newRisco : r));
+        } else {
+            setRiscos([...riscos, newRisco]);
+        }
+        setShowModal(false);
+    };
+    
+    return (
+        <div>
+            <div className="card-header"><h3 className="card-title">📊 Inventário de Riscos (NR-01)</h3><button className="btn btn-primary btn-sm" onClick={openAdd}>+ Adicionar</button></div>
+            <div className="alert alert-info" style={{marginBottom:12}}>
+                <span>ℹ️</span>
+                <div style={{fontSize:'0.75rem'}}>
+                    <strong>Matriz de Risco 5x5:</strong> Probabilidade × Severidade = Risco (1-25). 
+                    Níveis: <span style={{color:'#22c55e'}}>Trivial (1-4)</span>, <span style={{color:'#84cc16'}}>Tolerável (5-8)</span>, 
+                    <span style={{color:'#eab308'}}> Moderado (9-12)</span>, <span style={{color:'#f97316'}}> Substancial (15-16)</span>, 
+                    <span style={{color:'#ef4444'}}> Intolerável (20-25)</span>.
+                </div>
+            </div>
+            {riscos.length > 0 ? (<table><thead><tr><th>Perigo</th><th>P</th><th>S</th><th>Risco</th><th>Nível</th><th>Ações</th></tr></thead><tbody>{riscos.sort((a,b) => (b.valor||0) - (a.valor||0)).map(r => (<tr key={r.id}><td>{r.perigo}</td><td>{r.prob}</td><td>{r.sev}</td><td><strong style={{color: r.cor}}>{r.valor}</strong></td><td><span className="badge" style={{background: (r.cor||'#666') + '33', color: r.cor||'#666'}}>{r.nivel}</span></td><td className="actions"><button className="btn btn-secondary btn-sm" onClick={() => openEdit(r)}>✏️</button><button className="btn btn-danger btn-sm" onClick={() => setRiscos(riscos.filter(x => x.id !== r.id))}>🗑️</button></td></tr>))}</tbody></table>) : (<div className="empty">Nenhum risco identificado</div>)}
+            {showModal && (<div className="modal-overlay"><div className="modal" style={{maxWidth:700}}><div className="modal-header"><h3 className="modal-title">{editing ? 'Editar' : 'Adicionar'} Risco</h3><button className="modal-close" onClick={() => setShowModal(false)}>&times;</button></div><div className="modal-body">
+                <div className="form-group"><label className="form-label">Perigo</label><select className="form-select" value={form.perigoId} onChange={e => setForm({...form, perigoId: e.target.value})}><option value="">Selecione ou descreva abaixo</option>{PERIGOS.map(p => <option key={p.id} value={p.id}>[{p.cat}] {p.p}</option>)}</select></div>
+                {!form.perigoId && <div className="form-group"><label className="form-label">Ou descreva</label><input className="form-input" value={form.perigoCustom} onChange={e => setForm({...form, perigoCustom: e.target.value})} /></div>}
+                <div className="form-group"><label className="form-label">Fonte/Local</label><input className="form-input" value={form.fonte} onChange={e => setForm({...form, fonte: e.target.value})} placeholder="Ex: Posto de trabalho administrativo" /></div>
+                <div className="section-title">🛡️ Medidas de Controle Existentes</div>
+                <div className="medidas-grid">{MEDIDAS_CONTROLE.map(m => (<div key={m} className={`medida-chip ${ensureArray(form.medidas).includes(m) ? 'selected' : ''}`} onClick={() => toggleMedida(m)}>{m}</div>))}</div>
+                <div className="custom-field"><div className="custom-field-label">✏️ Outras medidas</div><input className="form-input" value={form.medidasCustom || ''} onChange={e => setForm({...form, medidasCustom: e.target.value})} placeholder="Medidas adicionais separadas por vírgula..." style={{width:'100%'}} /></div>
+                <div className="section-title">⚠️ Avaliação</div>
+                <MatrizRiscoSelector value={form.risco} onChange={r => setForm({...form, risco: r})} />
+            </div><div className="modal-footer"><button className="btn btn-secondary" onClick={() => setShowModal(false)}>Cancelar</button><button className="btn btn-primary" onClick={handleSave}>💾 {editing ? 'Atualizar' : 'Salvar'}</button></div></div></div>)}
+        </div>
+    );
+}
+
+function FerramentasModal({ avaliacoes, setAvaliacoes, onClose }) {
+    const [showCalc, setShowCalc] = useState(null);
+    const handleSave = (result) => { setAvaliacoes([...avaliacoes, { id: genId(), ...result, data: new Date().toISOString() }]); setShowCalc(null); };
+    const CalcComponent = { rula: RulaCalc, reba: RebaCalc, niosh: NioshCalc, strain: StrainCalc, nasa: NasaCalc, rosa: RosaCalc }[showCalc];
+    return (
+        <div className="modal-overlay"><div className="modal"><div className="modal-header"><h3 className="modal-title">🔧 Ferramentas Ergonômicas</h3><button className="modal-close" onClick={onClose}>&times;</button></div><div className="modal-body">
+            {CalcComponent ? <CalcComponent onSave={handleSave} onClose={() => setShowCalc(null)} /> : (<>
+                <div className="tool-grid">{FERRAMENTAS.map(f => (<div key={f.id} className="tool-card"><div style={{fontSize:'0.65rem', color:'var(--primary-light)'}}>{f.cat}</div><div style={{fontWeight:600}}>{f.nome}</div><div style={{fontSize:'0.7rem', color:'var(--text-secondary)'}}>{f.desc}</div>{f.nbr && <div style={{fontSize:'0.6rem', color:'var(--accent)', marginTop:4}}>{f.nbr}</div>}<button className="btn btn-sm btn-primary" style={{marginTop:8}} onClick={() => setShowCalc(f.id)}>📊 Calcular</button></div>))}</div>
+                {avaliacoes.length > 0 && (<><div className="section-title">Avaliações</div><table><thead><tr><th>Ferramenta</th><th>Score</th><th>Classificação</th><th></th></tr></thead><tbody>{avaliacoes.map(a => (<tr key={a.id}><td>{a.tool}</td><td>{a.score}</td><td><span className={`badge ${a.risk.c === 'score-green' ? 'badge-success' : a.risk.c === 'score-yellow' ? 'badge-warning' : 'badge-danger'}`}>{a.risk.l}</span></td><td><button className="btn btn-danger btn-sm" onClick={() => setAvaliacoes(avaliacoes.filter(x => x.id !== a.id))}>🗑️</button></td></tr>))}</tbody></table></>)}
+            </>)}
+        </div>{!showCalc && <div className="modal-footer"><button className="btn btn-secondary" onClick={onClose}>Fechar</button></div>}</div></div>
+    );
+}
+
+function FotosSection({ fotos, setFotos }) {
+    const [loadingAI, setLoadingAI] = useState(null);
+    const addFoto = () => setFotos([...fotos, { id: genId(), imagem: '', legenda: '', analise: '' }]);
+    const updateFoto = (id, field, value) => setFotos(fotos.map(f => f.id === id ? {...f, [field]: value} : f));
+    const removeFoto = (id) => setFotos(fotos.filter(f => f.id !== id));
+    const handleUpload = (id, e) => { const file = e.target.files[0]; if (file) { const reader = new FileReader(); reader.onload = (ev) => updateFoto(id, 'imagem', ev.target.result); reader.readAsDataURL(file); } };
+    const analisarComIA = async (id) => {
+        setLoadingAI(id);
+        await new Promise(r => setTimeout(r, 2000));
+        const analises = [
+            "Postura sentada com flexão cervical acentuada (>20°) em desacordo com ISO 11226. Recomenda-se ajuste do monitor e apoio de punho.",
+            "Trabalhador com apoio lombar insuficiente (NBR 13962). Sugerir cadeira ergonômica com regulagens.",
+            "Monitor posicionado lateralmente causando rotação cervical. Reorganizar layout.",
+            "Posto de trabalho com iluminação adequada (NHO-11). Postura com leve flexão. Implementar pausas (NR-17)."
+        ];
+        updateFoto(id, 'analise', analises[Math.floor(Math.random() * analises.length)]);
+        setLoadingAI(null);
+    };
+    return (
+        <div>
+            <div className="card-header"><h3 className="card-title">📷 Registro Fotográfico</h3><button className="btn btn-primary btn-sm" onClick={addFoto}>+ Adicionar</button></div>
+            <div className="photo-grid">
+                {fotos.map((f, idx) => (
+                    <div key={f.id} className={`photo-card ${f.imagem ? 'has-image' : ''}`}>
+                        {f.imagem ? (<>
+                            <img src={f.imagem} className="photo-preview" />
+                            <input className="form-input" placeholder="Legenda..." value={f.legenda} onChange={e => updateFoto(f.id, 'legenda', e.target.value)} style={{fontSize:'0.75rem', marginBottom:8}} />
+                            <div style={{display:'flex', justifyContent:'space-between', marginBottom:4}}>
+                                <label className="form-label" style={{margin:0}}>Análise</label>
+                                <button className="btn btn-ai btn-sm" onClick={() => analisarComIA(f.id)} disabled={loadingAI === f.id}>{loadingAI === f.id ? '⏳' : '🤖 IA'}</button>
+                            </div>
+                            {loadingAI === f.id && <div className="ai-loading"><div className="spinner"></div>Analisando...</div>}
+                            <textarea className="form-textarea" placeholder="Análise ergonômica..." value={f.analise} onChange={e => updateFoto(f.id, 'analise', e.target.value)} style={{minHeight:60, fontSize:'0.75rem'}} />
+                            <div className="photo-actions">
+                                <label className="btn btn-secondary btn-sm" style={{cursor:'pointer'}}>🔄<input type="file" accept="image/*" style={{display:'none'}} onChange={(e) => handleUpload(f.id, e)} /></label>
+                                <button className="btn btn-danger btn-sm" onClick={() => removeFoto(f.id)}>🗑️</button>
+                            </div>
+                        </>) : (<label className="photo-upload"><span style={{fontSize:'2rem'}}>📷</span><span>Foto {idx + 1}</span><input type="file" accept="image/*" style={{display:'none'}} onChange={(e) => handleUpload(f.id, e)} /></label>)}
+                    </div>
+                ))}
+                {fotos.length === 0 && (<div className="photo-card"><div className="photo-upload" onClick={addFoto}><span style={{fontSize:'2rem'}}>➕</span><span>Adicionar foto</span></div></div>)}
+            </div>
+        </div>
+    );
+}
+
+function RecomendacoesSection({ form, setForm }) {
+    const [loadingAI, setLoadingAI] = useState(false);
+    const [loadingObs, setLoadingObs] = useState(false);
+    
+    const gerarRecomendacoesIA = async () => {
+        setLoadingAI(true);
+        await new Promise(r => setTimeout(r, 2000));
+        let rec = [];
+        const posturas = ensureArray(form.posturas);
+        const movimentos = ensureArray(form.movimentos);
+        if (posturas.includes('sentado')) { rec.push("• Implementar pausas de 10 minutos a cada 50 minutos conforme NR-17", "• Cadeira com regulagem de altura, apoio lombar e braços (NBR 13962)", "• Orientar postura correta: pés apoiados, joelhos em 90°"); }
+        if (posturas.includes('em_pe')) { rec.push("• Tapete anti-fadiga para postos em pé", "• Rodízio de atividades (ISO 11226)", "• Banco semi-sentado"); }
+        if (posturas.includes('flexao')) { rec.push("• Reorganizar layout para minimizar flexões >20°", "• Elevar planos de trabalho"); }
+        if (movimentos.includes('digitacao')) { rec.push("• Ajustar altura do teclado para punhos neutros", "• Apoio de punho para digitação"); }
+        if (movimentos.includes('mouse')) { rec.push("• Mouse próximo ao teclado, mesma altura", "• Mouse ergonômico vertical"); }
+        if (movimentos.includes('levantar')) { rec.push("• Equipamentos de auxílio mecânico", "• Treinamento técnicas de levantamento (NIOSH)"); }
+        rec.push("• Ginástica laboral diária", "• Avaliação ergonômica periódica", "• Capacitação sobre riscos ergonômicos");
+        setForm({...form, recomendacoes: rec.join('\n')});
+        setLoadingAI(false);
+    };
+    
+    const gerarObservacoesIA = async () => {
+        setLoadingObs(true);
+        await new Promise(r => setTimeout(r, 1500));
+        const observacoes = [
+            "As recomendações foram elaboradas com base na análise das condições de trabalho observadas. Sugere-se acompanhamento periódico para verificação da eficácia das medidas implementadas. Prazo sugerido para implementação das ações de alta prioridade: 30 dias.",
+            "Esta análise considerou os aspectos biomecânicos, organizacionais e ambientais do posto de trabalho. Recomenda-se reavaliação após implementação das medidas propostas, em prazo não superior a 90 dias.",
+            "Os riscos identificados requerem atenção conforme matriz de priorização. Sugere-se elaboração de cronograma de implementação das medidas com acompanhamento mensal.",
+            "A implementação das recomendações deve ser acompanhada pelo SESMT ou responsável designado. Manter registros das ações realizadas para fins de evidência documental."
+        ];
+        setForm({...form, observacoes: observacoes[Math.floor(Math.random() * observacoes.length)]});
+        setLoadingObs(false);
+    };
+    
+    return (
+        <div>
+            <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:8}}>
+                <label className="form-label" style={{margin:0}}>RECOMENDAÇÕES TÉCNICAS</label>
+                <button className="btn btn-ai btn-sm" onClick={gerarRecomendacoesIA} disabled={loadingAI}>{loadingAI ? '⏳ Gerando...' : '🤖 Gerar com IA'}</button>
+            </div>
+            {loadingAI && <div className="ai-loading"><div className="spinner"></div>Gerando recomendações...</div>}
+            <textarea className="form-textarea large" value={form.recomendacoes || ''} onChange={e => setForm({...form, recomendacoes: e.target.value})} placeholder="Recomendações técnicas baseadas nas normas NR-17, NBR ISO 11226, NBR 13962..." />
+            
+            <div className="form-grid" style={{marginTop:16}}>
+                <div className="form-group"><label className="form-label">Prioridade Geral</label><select className="form-select" value={form.prioridade || 'media'} onChange={e => setForm({...form, prioridade: e.target.value})}><option value="baixa">Baixa</option><option value="media">Média</option><option value="alta">Alta</option><option value="urgente">Urgente</option></select></div>
+            </div>
+            
+            <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginTop:16, marginBottom:8}}>
+                <label className="form-label" style={{margin:0}}>OBSERVAÇÕES ADICIONAIS</label>
+                <button className="btn btn-ai btn-sm" onClick={gerarObservacoesIA} disabled={loadingObs}>{loadingObs ? '⏳' : '🤖 Gerar com IA'}</button>
+            </div>
+            {loadingObs && <div className="ai-loading"><div className="spinner"></div>Gerando observações...</div>}
+            <textarea className="form-textarea large" value={form.observacoes || ''} onChange={e => setForm({...form, observacoes: e.target.value})} placeholder="Observações adicionais sobre a análise, prazos, acompanhamento..." />
+        </div>
+    );
+}
+
+// ==================== PÁGINAS ====================
+function Dashboard({ companies, analyses }) {
+    const totalRiscos = analyses.reduce((acc, a) => acc + (a.riscos?.length || 0), 0);
+    const riscosAltos = analyses.reduce((acc, a) => acc + (a.riscos?.filter(r => (r.valor||0) >= 15).length || 0), 0);
+    const totalFotos = analyses.reduce((acc, a) => acc + (a.fotos?.filter(f => f.imagem).length || 0), 0);
+    return (
+        <div>
+            <div className="header"><h1 className="title">📊 Dashboard</h1></div>
+            <div className="stats-grid">
+                <div className="stat-card"><div className="stat-value">{companies.length}</div><div className="stat-label">Empresas</div></div>
+                <div className="stat-card"><div className="stat-value">{analyses.length}</div><div className="stat-label">Análises</div></div>
+                <div className="stat-card"><div className="stat-value">{analyses.filter(a => a.status === 'completed').length}</div><div className="stat-label">Concluídas</div></div>
+                <div className="stat-card"><div className="stat-value">{totalRiscos}</div><div className="stat-label">Riscos</div></div>
+                <div className="stat-card"><div className="stat-value" style={{color:'var(--danger)'}}>{riscosAltos}</div><div className="stat-label">Críticos</div></div>
+                <div className="stat-card"><div className="stat-value">{totalFotos}</div><div className="stat-label">Fotos</div></div>
+            </div>
+            <div className="card"><div className="card-header"><h3 className="card-title">Últimas Análises</h3></div>{analyses.length > 0 ? (<table><thead><tr><th>Empresa</th><th>Setor</th><th>Função</th><th>Riscos</th><th>Status</th></tr></thead><tbody>{analyses.slice(0,5).map(a => (<tr key={a.id}><td>{companies.find(c => c.id === a.companyId)?.nome || '-'}</td><td>{a.setor}</td><td>{a.funcao}</td><td><span className="badge badge-warning">{a.riscos?.length || 0}</span></td><td><span className={`badge badge-${a.status === 'completed' ? 'success' : 'warning'}`}>{a.status === 'completed' ? 'OK' : 'Pend.'}</span></td></tr>))}</tbody></table>) : <div className="empty">Nenhuma análise</div>}</div>
+        </div>
+    );
+}
+
+function Companies({ companies, setCompanies }) {
+    const [showModal, setShowModal] = useState(false);
+    const [editing, setEditing] = useState(null);
+    const [form, setForm] = useState({ nome: '', cnpj: '', endereco: '', telefone: '', cnae: '', atividade: '', grauRisco: '', funcionarios: '', logo: '' });
+    const submit = () => { if (editing) setCompanies(companies.map(c => c.id === editing.id ? {...form, id: c.id} : c)); else setCompanies([...companies, {...form, id: genId()}]); setShowModal(false); setEditing(null); setForm({ nome: '', cnpj: '', endereco: '', telefone: '', cnae: '', atividade: '', grauRisco: '', funcionarios: '', logo: '' }); };
+    const handleLogo = (e) => { const file = e.target.files[0]; if (file) { const reader = new FileReader(); reader.onload = (ev) => setForm({...form, logo: ev.target.result}); reader.readAsDataURL(file); } };
+    return (
+        <div>
+            <div className="header"><h1 className="title">🏢 Empresas</h1><button className="btn btn-primary" onClick={() => setShowModal(true)}>+ Nova</button></div>
+            <div className="card">{companies.length > 0 ? (<table><thead><tr><th></th><th>Nome</th><th>CNPJ</th><th>CNAE</th><th>GR</th><th></th></tr></thead><tbody>{companies.map(c => (<tr key={c.id}><td style={{width:50}}>{c.logo && <img src={c.logo} style={{maxHeight:30, maxWidth:50}} />}</td><td>{c.nome}</td><td>{c.cnpj}</td><td>{c.cnae}</td><td>{c.grauRisco}</td><td className="actions"><button className="btn btn-secondary btn-sm" onClick={() => { setEditing(c); setForm(c); setShowModal(true); }}>✏️</button><button className="btn btn-danger btn-sm" onClick={() => { if (confirm('Excluir?')) setCompanies(companies.filter(x => x.id !== c.id)); }}>🗑️</button></td></tr>))}</tbody></table>) : <div className="empty">Nenhuma empresa</div>}</div>
+            {showModal && (<div className="modal-overlay"><div className="modal" style={{maxWidth:700}}><div className="modal-header"><h3 className="modal-title">{editing ? 'Editar' : 'Nova'} Empresa</h3><button className="modal-close" onClick={() => { setShowModal(false); setEditing(null); }}>&times;</button></div><div className="modal-body"><div className="form-group" style={{marginBottom:12}}><label className="form-label">Logo</label><label className="logo-upload">{form.logo ? <img src={form.logo} /> : <span style={{color:'var(--text-secondary)'}}>📷 Clique</span>}<input type="file" accept="image/*" style={{display:'none'}} onChange={handleLogo} /></label></div><div className="form-grid"><div className="form-group full"><label className="form-label">Razão Social *</label><input className="form-input" value={form.nome} onChange={e => setForm({...form, nome: e.target.value})} /></div><div className="form-group"><label className="form-label">CNPJ</label><MaskedInput mask="cnpj" value={form.cnpj} onChange={v => setForm({...form, cnpj: v})} /></div><div className="form-group"><label className="form-label">Telefone</label><MaskedInput mask="telefone" value={form.telefone} onChange={v => setForm({...form, telefone: v})} /></div><div className="form-group full"><label className="form-label">Endereço</label><input className="form-input" value={form.endereco} onChange={e => setForm({...form, endereco: e.target.value})} /></div><div className="form-group"><label className="form-label">CNAE</label><input className="form-input" value={form.cnae} onChange={e => setForm({...form, cnae: e.target.value})} /></div><div className="form-group"><label className="form-label">Atividade</label><input className="form-input" value={form.atividade} onChange={e => setForm({...form, atividade: e.target.value})} /></div><div className="form-group"><label className="form-label">Grau de Risco</label><select className="form-select" value={form.grauRisco} onChange={e => setForm({...form, grauRisco: e.target.value})}><option value="">-</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option></select></div><div className="form-group"><label className="form-label">Funcionários</label><input className="form-input" type="number" value={form.funcionarios} onChange={e => setForm({...form, funcionarios: e.target.value})} /></div></div></div><div className="modal-footer"><button className="btn btn-secondary" onClick={() => { setShowModal(false); setEditing(null); }}>Cancelar</button><button className="btn btn-primary" onClick={submit}>💾 Salvar</button></div></div></div>)}
+        </div>
+    );
+}
+
+function Analyses({ companies, analyses, setAnalyses }) {
+    const [showModal, setShowModal] = useState(false);
+    const [editing, setEditing] = useState(null);
+    const [tab, setTab] = useState('info');
+    const [showFerramentas, setShowFerramentas] = useState(false);
+    const empty = { companyId: '', setor: '', funcao: '', cbo: '', data: new Date().toISOString().split('T')[0], status: 'pending', demanda: '', demandaDetalhe: '', objetivos: [], regime: [], regimeCustom: '', modo: [], modoCustom: '', ritmo: [], ritmoCustom: '', pausas: [], pausasCustom: '', ambTipo: '', ilumValor: '', tempValor: '', ruidoValor: '', ventilacao: [], ventilacaoCustom: '', mobiliario: [], mobiliarioCustom: '', equipamentos: [], equipamentosCustom: '', posturas: [], movimentos: [], freqMov: '', levantaCarga: false, pesoMedio: '', pesoMax: '', recomendacoes: '', prioridade: 'media', observacoes: '', riscos: [], avaliacoes: [], fotos: [] };
+    const [form, setForm] = useState(empty);
+    const close = () => { setShowModal(false); setEditing(null); setForm(empty); setTab('info'); };
+    const submit = () => { if (editing) setAnalyses(analyses.map(a => a.id === editing.id ? {...form, id: a.id} : a)); else setAnalyses([...analyses, {...form, id: genId()}]); close(); };
+    const edit = (a) => { setEditing(a); setForm({...empty, ...a}); setShowModal(true); };
+    const del = (id) => { if (confirm('Excluir?')) setAnalyses(analyses.filter(a => a.id !== id)); };
+    const toggleArray = (arr, item) => { const current = ensureArray(arr); return current.includes(item) ? current.filter(i => i !== item) : [...current, item]; };
+    
+    return (
+        <div>
+            <div className="header"><h1 className="title">📋 Análises Ergonômicas</h1><button className="btn btn-primary" onClick={() => setShowModal(true)}>+ Nova AET</button></div>
+            <div className="card">{analyses.length > 0 ? (<table><thead><tr><th>Empresa</th><th>Setor</th><th>Função</th><th>Data</th><th>Riscos</th><th>Fotos</th><th>Status</th><th></th></tr></thead><tbody>{analyses.map(a => (<tr key={a.id}><td>{companies.find(c => c.id === a.companyId)?.nome || '-'}</td><td>{a.setor}</td><td>{a.funcao}</td><td>{fmtDate(a.data)}</td><td><span className="badge badge-warning">{a.riscos?.length || 0}</span></td><td><span className="badge badge-info">{a.fotos?.filter(f => f.imagem).length || 0}</span></td><td><span className={`badge badge-${a.status === 'completed' ? 'success' : 'warning'}`}>{a.status === 'completed' ? 'OK' : 'Pend.'}</span></td><td className="actions"><button className="btn btn-secondary btn-sm" onClick={() => edit(a)}>✏️</button><button className="btn btn-danger btn-sm" onClick={() => del(a.id)}>🗑️</button></td></tr>))}</tbody></table>) : <div className="empty">Nenhuma análise</div>}</div>
+            {showModal && (<div className="modal-overlay"><div className="modal"><div className="modal-header"><h3 className="modal-title">{editing ? 'Editar' : 'Nova'} Análise</h3><button className="modal-close" onClick={close}>&times;</button></div><div className="modal-body">
+                <div className="tabs">
+                    <button className={`tab ${tab === 'info' ? 'active' : ''}`} onClick={() => setTab('info')}>📝 Info</button>
+                    <button className={`tab ${tab === 'org' ? 'active' : ''}`} onClick={() => setTab('org')}>🏭 Organização</button>
+                    <button className={`tab ${tab === 'amb' ? 'active' : ''}`} onClick={() => setTab('amb')}>🌡️ Ambiente</button>
+                    <button className={`tab ${tab === 'bio' ? 'active' : ''}`} onClick={() => setTab('bio')}>🧍 Biomecânica</button>
+                    <button className={`tab ${tab === 'ferramentas' ? 'active' : ''}`} onClick={() => setTab('ferramentas')}>🔧 Ferramentas ({form.avaliacoes?.length || 0})</button>
+                    <button className={`tab ${tab === 'fotos' ? 'active' : ''}`} onClick={() => setTab('fotos')}>📷 Fotos ({form.fotos?.filter(f => f.imagem).length || 0})</button>
+                    <button className={`tab ${tab === 'riscos' ? 'active' : ''}`} onClick={() => setTab('riscos')}>⚠️ Riscos ({form.riscos?.length || 0})</button>
+                    <button className={`tab ${tab === 'recom' ? 'active' : ''}`} onClick={() => setTab('recom')}>💡 Recomendações</button>
+                </div>
+                
+                {tab === 'info' && (<div>
+                    <div className="form-grid">
+                        <div className="form-group"><label className="form-label">Empresa *</label><select className="form-select" value={form.companyId} onChange={e => setForm({...form, companyId: e.target.value})}><option value="">Selecione</option>{companies.map(c => <option key={c.id} value={c.id}>{c.nome}</option>)}</select></div>
+                        <div className="form-group"><label className="form-label">Data</label><input className="form-input" type="date" value={form.data} onChange={e => setForm({...form, data: e.target.value})} /></div>
+                        <div className="form-group"><label className="form-label">Setor *</label><input className="form-input" value={form.setor} onChange={e => setForm({...form, setor: e.target.value})} /></div>
+                        <div className="form-group"><label className="form-label">Função *</label><input className="form-input" value={form.funcao} onChange={e => setForm({...form, funcao: e.target.value})} /></div>
+                        <div className="form-group"><label className="form-label">CBO</label><input className="form-input" value={form.cbo} onChange={e => setForm({...form, cbo: e.target.value})} /></div>
+                        <div className="form-group"><label className="form-label">Status</label><select className="form-select" value={form.status} onChange={e => setForm({...form, status: e.target.value})}><option value="pending">Pendente</option><option value="completed">Concluída</option></select></div>
+                    </div>
+                    <div className="section-title">📌 Demanda</div>
+                    <div className="chip-container">{DEMANDAS.map(d => (<span key={d.id} className={`chip ${form.demanda === d.t ? 'selected' : ''}`} onClick={() => setForm({...form, demanda: d.t, demandaDetalhe: d.d})}>{d.t}</span>))}</div>
+                    <textarea className="form-textarea" value={form.demandaDetalhe} onChange={e => setForm({...form, demandaDetalhe: e.target.value})} placeholder="Detalhamento..." style={{marginTop:8}} />
+                    <div className="section-title">🎯 Objetivos</div>
+                    <div className="multi-select">{OBJETIVOS.map((o, idx) => (<div key={idx} className={`multi-item ${ensureArray(form.objetivos).includes(o) ? 'selected' : ''}`} onClick={() => setForm({...form, objetivos: toggleArray(form.objetivos, o)})}><span style={{opacity: ensureArray(form.objetivos).includes(o) ? 1 : 0}}>✓</span><span>{o}</span></div>))}</div>
+                </div>)}
+                
+                {tab === 'org' && (<div>
+                    <MultiSelectCustom items={REGIMES} selected={form.regime} setSelected={v => setForm({...form, regime: v})} customValue={form.regimeCustom} setCustomValue={v => setForm({...form, regimeCustom: v})} label="⏰ Regime" />
+                    <MultiSelectCustom items={MODOS} selected={form.modo} setSelected={v => setForm({...form, modo: v})} customValue={form.modoCustom} setCustomValue={v => setForm({...form, modoCustom: v})} label="🔄 Modo Operatório" />
+                    <MultiSelectCustom items={RITMOS} selected={form.ritmo} setSelected={v => setForm({...form, ritmo: v})} customValue={form.ritmoCustom} setCustomValue={v => setForm({...form, ritmoCustom: v})} label="⚡ Ritmo" />
+                    <MultiSelectCustom items={PAUSAS} selected={form.pausas} setSelected={v => setForm({...form, pausas: v})} customValue={form.pausasCustom} setCustomValue={v => setForm({...form, pausasCustom: v})} label="⏸️ Pausas" />
+                </div>)}
+                
+                {tab === 'amb' && (<div>
+                    <div className="section-title">💡 Iluminação (NHO-11)</div>
+                    <div className="form-grid">
+                        <div className="form-group"><label className="form-label">Tipo Ambiente</label><select className="form-select" value={form.ambTipo} onChange={e => setForm({...form, ambTipo: e.target.value})}><option value="">Selecione</option>{NHO11.map(a => <option key={a.id} value={a.id}>{a.nome} ({a.lux} lux)</option>)}</select></div>
+                        <div className="form-group"><label className="form-label">Medido (lux)</label><input className="form-input" type="number" value={form.ilumValor} onChange={e => setForm({...form, ilumValor: e.target.value})} /></div>
+                    </div>
+                    {checkIlum(form.ilumValor, form.ambTipo) && <div className={`compliance ${checkIlum(form.ilumValor, form.ambTipo).s}`}>{checkIlum(form.ilumValor, form.ambTipo).m}</div>}
+                    <div className="section-title">🌡️ Temperatura (NR-17)</div>
+                    <div className="form-grid"><div className="form-group"><label className="form-label">Temperatura (°C)</label><input className="form-input" type="number" step="0.1" value={form.tempValor} onChange={e => setForm({...form, tempValor: e.target.value})} /></div></div>
+                    {checkTemp(form.tempValor) && <div className={`compliance ${checkTemp(form.tempValor).s}`}>{checkTemp(form.tempValor).m}</div>}
+                    <div className="section-title">🔊 Ruído (NBR 10152)</div>
+                    <div className="form-grid"><div className="form-group"><label className="form-label">Ruído (dB)</label><input className="form-input" type="number" value={form.ruidoValor} onChange={e => setForm({...form, ruidoValor: e.target.value})} /></div></div>
+                    {checkRuido(form.ruidoValor) && <div className={`compliance ${checkRuido(form.ruidoValor).s}`}>{checkRuido(form.ruidoValor).m}</div>}
+                    <MultiSelectCustom items={VENTILACOES} selected={form.ventilacao} setSelected={v => setForm({...form, ventilacao: v})} customValue={form.ventilacaoCustom} setCustomValue={v => setForm({...form, ventilacaoCustom: v})} label="💨 Ventilação" />
+                    <MultiSelectCustom items={MOBILIARIOS} selected={form.mobiliario} setSelected={v => setForm({...form, mobiliario: v})} customValue={form.mobiliarioCustom} setCustomValue={v => setForm({...form, mobiliarioCustom: v})} label="🪑 Mobiliário (NBR 13962)" />
+                    <MultiSelectCustom items={EQUIPAMENTOS} selected={form.equipamentos} setSelected={v => setForm({...form, equipamentos: v})} customValue={form.equipamentosCustom} setCustomValue={v => setForm({...form, equipamentosCustom: v})} label="🖥️ Equipamentos" />
+                </div>)}
+                
+                {tab === 'bio' && (<div>
+                    <div className="section-title">🧍 Posturas (ISO 11226)</div>
+                    <div className="posture-grid">{POSTURAS.map(p => (<div key={p.id} className={`posture-item ${ensureArray(form.posturas).includes(p.id) ? 'selected' : ''}`} onClick={() => setForm({...form, posturas: toggleArray(form.posturas, p.id)})}><div className="icon">{p.i}</div><div>{p.l}</div></div>))}</div>
+                    <div className="section-title">🔄 Movimentos Repetitivos</div>
+                    <div className="posture-grid">{MOVIMENTOS.map(m => (<div key={m.id} className={`posture-item ${ensureArray(form.movimentos).includes(m.id) ? 'selected' : ''}`} onClick={() => setForm({...form, movimentos: toggleArray(form.movimentos, m.id)})}><div className="icon">{m.i}</div><div>{m.l}</div></div>))}</div>
+                    <div className="form-group" style={{marginTop:12}}><label className="form-label">Frequência</label><select className="form-select" value={form.freqMov} onChange={e => setForm({...form, freqMov: e.target.value})}><option value="">Selecione</option><option value="baixa">Baixa</option><option value="media">Média</option><option value="alta">Alta</option></select></div>
+                    <div className="section-title">📦 Cargas</div>
+                    <label><input type="checkbox" checked={form.levantaCarga} onChange={e => setForm({...form, levantaCarga: e.target.checked})}/> Levantamento manual</label>
+                    {form.levantaCarga && (<div className="form-grid" style={{marginTop:8}}><div className="form-group"><label className="form-label">Peso médio (kg)</label><input className="form-input" type="number" value={form.pesoMedio} onChange={e => setForm({...form, pesoMedio: e.target.value})} /></div><div className="form-group"><label className="form-label">Peso máximo (kg)</label><input className="form-input" type="number" value={form.pesoMax} onChange={e => setForm({...form, pesoMax: e.target.value})} /></div></div>)}
+                </div>)}
+                
+                {tab === 'ferramentas' && (<div>
+                    <button className="btn btn-primary" onClick={() => setShowFerramentas(true)}>🔧 Abrir Ferramentas</button>
+                    {form.avaliacoes?.length > 0 && (<><div className="section-title">Avaliações</div><table><thead><tr><th>Ferramenta</th><th>Score</th><th>Classificação</th><th>Ação</th></tr></thead><tbody>{form.avaliacoes.map(a => (<tr key={a.id}><td>{a.tool}</td><td>{a.score}</td><td><span className={`badge ${a.risk.c === 'score-green' ? 'badge-success' : a.risk.c === 'score-yellow' ? 'badge-warning' : 'badge-danger'}`}>{a.risk.l}</span></td><td>{a.risk.a}</td></tr>))}</tbody></table></>)}
+                </div>)}
+                
+                {tab === 'fotos' && (<div className="card"><FotosSection fotos={form.fotos || []} setFotos={f => setForm({...form, fotos: f})} /></div>)}
+                
+                {tab === 'riscos' && (<div className="card"><InventarioRiscos riscos={form.riscos || []} setRiscos={r => setForm({...form, riscos: r})} /></div>)}
+                
+                {tab === 'recom' && (<RecomendacoesSection form={form} setForm={setForm} />)}
+            </div><div className="modal-footer"><button className="btn btn-secondary" onClick={close}>Cancelar</button><button className="btn btn-primary" onClick={submit}>💾 Salvar</button></div></div></div>)}
+            {showFerramentas && (<FerramentasModal avaliacoes={form.avaliacoes || []} setAvaliacoes={a => setForm({...form, avaliacoes: a})} onClose={() => setShowFerramentas(false)} />)}
+        </div>
+    );
+}
+
+function Reports({ companies, analyses, config }) {
+    const [sel, setSel] = useState([]);
+    const [generating, setGenerating] = useState(false);
+    const toggle = id => setSel(p => p.includes(id) ? p.filter(i => i !== id) : [...p, id]);
+    
+    const gerarPDF = () => {
+        if (sel.length === 0) { alert('Selecione pelo menos uma análise'); return; }
+        setGenerating(true);
+        
+        setTimeout(() => {
+            const s = analyses.filter(a => sel.includes(a.id));
+            const w = window.open('', '_blank');
+            if (!w) { alert('Popup bloqueado!'); setGenerating(false); return; }
+            
+            const elaboradora = config.incluirElaboradora && config.elaboradora ? config.elaboradora : null;
+            
+            let html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>AET</title><style>@page{size:A4;margin:20mm 15mm 25mm 15mm}*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Segoe UI',Arial,sans-serif;font-size:11pt;line-height:1.6;color:#333}.capa{height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;background:linear-gradient(135deg,#1e40af,#3b82f6);color:white;page-break-after:always}.capa h1{font-size:28pt;margin-bottom:10px}.capa h2{font-size:16pt;font-weight:400;margin-bottom:40px}.capa-empresa{background:rgba(255,255,255,0.15);padding:20px 40px;border-radius:12px;margin:20px 0}.page{page-break-after:always;padding:10px 0}.page:last-child{page-break-after:auto}h2{color:#1e40af;font-size:14pt;border-bottom:3px solid #f97316;padding-bottom:6px;margin:20px 0 12px}h3{color:#1e40af;font-size:12pt;margin:15px 0 8px}p{margin-bottom:10px;text-align:justify}table{width:100%;border-collapse:collapse;margin:12px 0;font-size:10pt}th,td{border:1px solid #ccc;padding:8px;text-align:left}th{background:#1e40af;color:white}.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.info-item{margin-bottom:6px}.info-item strong{color:#1e40af;font-size:9pt;display:block}.info-box{background:#f0f4ff;border-left:4px solid #1e40af;padding:12px;margin:15px 0;border-radius:0 6px 6px 0}.badge{padding:3px 8px;border-radius:10px;font-size:9pt;font-weight:600;color:white}.trivial{background:#22c55e}.toleravel{background:#84cc16}.moderado{background:#eab308}.substancial{background:#f97316}.intoleravel{background:#ef4444}.atende{background:#dcfce7;color:#166534;padding:4px 8px;border-radius:4px;font-size:9pt}.nao-atende{background:#fecaca;color:#991b1b;padding:4px 8px;border-radius:4px;font-size:9pt}.assinatura{margin-top:60px;text-align:center}.assinatura-linha{width:300px;border-top:2px solid #333;margin:50px auto 8px}ul{margin-left:20px;margin-bottom:10px}li{margin-bottom:5px}.foto-container{margin:15px 0;page-break-inside:avoid}.foto-img{max-width:100%;max-height:180px;border:1px solid #ddd;border-radius:6px}.foto-legenda{font-weight:600;margin-top:6px}.foto-analise{font-size:10pt;color:#555;font-style:italic;background:#f8f8f8;padding:8px;border-radius:4px;margin-top:4px}.rodape{position:fixed;bottom:0;left:0;right:0;background:#f8f8f8;border-top:2px solid #1e40af;padding:8px 15mm;font-size:8pt;color:#666;text-align:center}.rodape-empresa{font-weight:600;color:#1e40af}@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}.rodape{position:fixed;bottom:0}}</style></head><body>`;
+            
+            // Rodapé fixo com dados da empresa elaboradora
+            if (elaboradora) {
+                html += `<div class="rodape">
+                    <div class="rodape-empresa">${elaboradora.nome || 'Empresa Elaboradora'}</div>
+                    <div>${[elaboradora.cnpj ? 'CNPJ: ' + elaboradora.cnpj : '', elaboradora.endereco, elaboradora.telefone].filter(Boolean).join(' | ')}</div>
+                    <div style="margin-top:4px">${COPYRIGHT}</div>
+                </div>`;
+            } else {
+                html += `<div class="rodape"><div>${COPYRIGHT}</div></div>`;
+            }
+
+            s.forEach(a => {
+                const c = companies.find(x => x.id === a.companyId);
+                const formatList = (arr, customField, separator = ', ') => formatListForPDF(arr, customField, separator);
+                const formatObjetivos = () => { const objs = ensureArray(a.objetivos); if (objs.length === 0) return '<li>Identificar e avaliar riscos ergonômicos</li><li>Propor medidas de adequação</li>'; return objs.map(o => `<li>${o}</li>`).join(''); };
+                const formatPosturas = () => { const posts = ensureArray(a.posturas); if (posts.length === 0) return 'Não identificadas'; return posts.map(p => POSTURAS.find(x => x.id === p)?.l || p).filter(Boolean).join(', '); };
+                const formatMovimentos = () => { const movs = ensureArray(a.movimentos); if (movs.length === 0) return 'Não identificados'; return movs.map(m => MOVIMENTOS.find(x => x.id === m)?.l || m).filter(Boolean).join(', '); };
+                
+                // CAPA
+                html += `<div class="capa">${c?.logo ? `<img src="${c.logo}" style="max-height:80px;max-width:200px;margin-bottom:20px;border-radius:8px"/>` : ''}<h1>ANÁLISE ERGONÔMICA<br/>DO TRABALHO</h1><h2>AET - Conforme NR-17</h2><div class="capa-empresa"><div style="font-size:18pt;font-weight:700">${c?.nome || 'Empresa'}</div>${c?.cnpj ? `<div>CNPJ: ${c.cnpj}</div>` : ''}${c?.endereco ? `<div style="font-size:10pt">${c.endereco}</div>` : ''}</div><div style="margin-top:30px"><div><strong>Setor:</strong> ${a.setor} | <strong>Função:</strong> ${a.funcao}</div><div style="margin-top:10px">Data: ${fmtDate(a.data)}</div></div>${config?.responsavel ? `<div style="margin-top:auto;padding-top:40px;border-top:1px solid rgba(255,255,255,0.3);width:80%"><div style="font-size:10pt">Elaborado por:</div><div style="font-weight:600">${config.responsavel}</div>${config.cargo ? `<div style="font-size:10pt">${config.cargo}</div>` : ''}${config.registro ? `<div style="font-size:10pt">${config.registro}</div>` : ''}</div>` : ''}</div>`;
+                
+                // PÁGINA 1
+                html += `<div class="page"><h2>1. INTRODUÇÃO</h2><p>A <strong>Análise Ergonômica do Trabalho (AET)</strong> constitui um documento técnico de fundamental importância no âmbito da segurança e saúde ocupacional, sendo exigida pela Norma Regulamentadora nº 17 (NR-17) do Ministério do Trabalho e Emprego. Este estudo tem como finalidade precípua avaliar a adaptação das condições de trabalho às características psicofisiológicas dos trabalhadores, visando proporcionar máximo conforto, segurança e desempenho eficiente.</p><p>A Ergonomia, enquanto disciplina científica, estuda a interação entre o ser humano e os demais elementos de um sistema de trabalho, aplicando teorias, princípios, dados e métodos para otimizar o bem-estar humano e o desempenho global do sistema. A presente análise foi conduzida seguindo metodologia científica reconhecida internacionalmente, contemplando aspectos biomecânicos, organizacionais, cognitivos e ambientais.</p><p>Este documento fundamenta-se na avaliação sistemática das demandas físicas e cognitivas impostas ao trabalhador, considerando as características do posto de trabalho, equipamentos utilizados, organização temporal das atividades e condições ambientais. Os resultados subsidiam a proposição de medidas que visam à prevenção de distúrbios osteomusculares relacionados ao trabalho (DORT), lesões por esforços repetitivos (LER) e outros agravos à saúde.</p><div class="info-box"><strong>Base Legal e Normativa:</strong><ul style="margin-top:8px"><li><strong>NR-17 (Ergonomia)</strong> - Portaria MTE nº 3.751/1990, estabelecendo parâmetros para adaptação das condições de trabalho</li><li><strong>NR-01 (Gerenciamento de Riscos Ocupacionais)</strong> - Diretrizes para gerenciamento de riscos, incluindo ergonômicos</li><li><strong>ABNT NBR ISO 11226</strong> - Ergonomia - Avaliação de posturas estáticas de trabalho</li><li><strong>ABNT NBR ISO 10075-3</strong> - Princípios ergonômicos relacionados à carga de trabalho mental</li><li><strong>NBR 13962</strong> - Móveis para escritório - Cadeiras - Requisitos e métodos de ensaio</li><li><strong>NBR 10152</strong> - Níveis de pressão sonora em ambientes internos (conforto acústico)</li></ul></div><h3>1.1 Demanda</h3><p><strong>${a.demanda || 'Atendimento à legislação vigente'}</strong></p>${a.demandaDetalhe ? `<p>${a.demandaDetalhe}</p>` : '<p>Elaboração da Análise Ergonômica do Trabalho para cumprimento das exigências legais estabelecidas pela NR-17, visando identificar, avaliar e propor medidas de controle para os riscos ergonômicos presentes.</p>'}<h2>2. OBJETIVOS</h2><p>A presente Análise Ergonômica do Trabalho tem como objetivos:</p><ul>${formatObjetivos()}</ul><h2>3. IDENTIFICAÇÃO</h2><div class="info-grid"><div class="info-item"><strong>Razão Social</strong>${c?.nome || '-'}</div><div class="info-item"><strong>CNPJ</strong>${c?.cnpj || '-'}</div><div class="info-item"><strong>Endereço</strong>${c?.endereco || '-'}</div><div class="info-item"><strong>CNAE</strong>${c?.cnae || '-'}</div><div class="info-item"><strong>Setor Analisado</strong>${a.setor}</div><div class="info-item"><strong>Função</strong>${a.funcao}</div><div class="info-item"><strong>CBO</strong>${a.cbo || '-'}</div><div class="info-item"><strong>Data da Análise</strong>${fmtDate(a.data)}</div></div></div>`;
+                
+                // PÁGINA 2
+                const ambNome = NHO11.find(n => n.id === a.ambTipo)?.nome || '-';
+                const ambLux = NHO11.find(n => n.id === a.ambTipo)?.lux || 500;
+                const ilumOk = a.ilumValor && a.ambTipo ? parseFloat(a.ilumValor) >= ambLux : null;
+                const tempOk = a.tempValor ? parseFloat(a.tempValor) >= 18 && parseFloat(a.tempValor) <= 25 : null;
+                const ruidoOk = a.ruidoValor ? parseFloat(a.ruidoValor) <= 65 : null;
+                
+                html += `<div class="page"><h2>4. ORGANIZAÇÃO DO TRABALHO</h2><h3>4.1 Regime</h3><p>${formatList(a.regime, a.regimeCustom)}</p><h3>4.2 Modo Operatório</h3><p>${formatList(a.modo, a.modoCustom, '; ')}</p><h3>4.3 Ritmo</h3><p>${formatList(a.ritmo, a.ritmoCustom)}</p><h3>4.4 Pausas</h3><p>${formatList(a.pausas, a.pausasCustom, '; ')}</p><h2>5. CONDIÇÕES AMBIENTAIS</h2><table><tr><th>Parâmetro</th><th>Medido</th><th>Referência</th><th>Situação</th></tr><tr><td>Iluminação</td><td>${a.ilumValor ? a.ilumValor + ' lux' : '-'}</td><td>NHO-11: ${ambNome} (${ambLux} lux)</td><td>${ilumOk === null ? '-' : ilumOk ? '<span class="atende">ATENDE</span>' : '<span class="nao-atende">NÃO ATENDE</span>'}</td></tr><tr><td>Temperatura</td><td>${a.tempValor ? a.tempValor + '°C' : '-'}</td><td>NR-17: 18-25°C</td><td>${tempOk === null ? '-' : tempOk ? '<span class="atende">ATENDE</span>' : '<span class="nao-atende">NÃO ATENDE</span>'}</td></tr><tr><td>Ruído</td><td>${a.ruidoValor ? a.ruidoValor + ' dB' : '-'}</td><td>NBR 10152: ≤65 dB</td><td>${ruidoOk === null ? '-' : ruidoOk ? '<span class="atende">ATENDE</span>' : '<span class="nao-atende">NÃO ATENDE</span>'}</td></tr></table><h3>5.1 Ventilação</h3><p>${formatList(a.ventilacao, a.ventilacaoCustom)}</p><h3>5.2 Mobiliário</h3><p>${formatList(a.mobiliario, a.mobiliarioCustom)}</p><h3>5.3 Equipamentos</h3><p>${formatList(a.equipamentos, a.equipamentosCustom)}</p></div>`;
+                
+                // PÁGINA 3
+                html += `<div class="page"><h2>6. ASPECTOS BIOMECÂNICOS</h2><h3>6.1 Posturas</h3><p>${formatPosturas()}</p><h3>6.2 Movimentos</h3><p>${formatMovimentos()}</p>${a.freqMov ? `<p><strong>Frequência:</strong> ${a.freqMov}</p>` : ''}${a.levantaCarga ? `<h3>6.3 Cargas</h3><p>Peso médio: ${a.pesoMedio || '-'} kg | Peso máximo: ${a.pesoMax || '-'} kg</p>` : ''}`;
+                if (a.avaliacoes?.length > 0) { html += `<h2>7. FERRAMENTAS ERGONÔMICAS APLICADAS</h2><p>Para a quantificação e classificação dos riscos ergonômicos identificados, foram aplicadas ferramentas de avaliação reconhecidas cientificamente e recomendadas pelas normas técnicas brasileiras e internacionais. Estas metodologias permitem uma análise objetiva das condições de trabalho e fundamentam as recomendações técnicas apresentadas.</p><div class="info-box" style="background:#f8fafc;border-color:#e2e8f0"><strong>Metodologia de Avaliação:</strong><p style="margin:8px 0">As ferramentas ergonômicas utilizadas classificam os riscos em níveis que indicam a necessidade e urgência de intervenção. A interpretação dos resultados segue os protocolos científicos específicos de cada metodologia, considerando-se sempre o contexto real de trabalho observado.</p></div><table><tr><th>Ferramenta</th><th>Norma Base</th><th>Score</th><th>Classificação</th><th>Ação Requerida</th></tr>${a.avaliacoes.map(av => `<tr><td><strong>${av.tool}</strong></td><td style="font-size:9pt">${av.nbr || '-'}</td><td style="text-align:center">${av.score}</td><td><span class="badge ${av.risk.c === 'score-green' ? 'trivial' : av.risk.c === 'score-yellow' ? 'moderado' : 'intoleravel'}">${av.risk.l}</span></td><td>${av.risk.a}</td></tr>`).join('')}</table>`; }
+                html += `</div>`;
+                
+                // FOTOS
+                const fotosComImagem = a.fotos?.filter(f => f.imagem) || [];
+                if (fotosComImagem.length > 0) { const secFotos = a.avaliacoes?.length > 0 ? 8 : 7; html += `<div class="page"><h2>${secFotos}. REGISTRO FOTOGRÁFICO</h2>`; fotosComImagem.forEach((f, idx) => { html += `<div class="foto-container"><img src="${f.imagem}" class="foto-img"/><div class="foto-legenda">Foto ${idx + 1}${f.legenda ? ': ' + f.legenda : ''}</div>${f.analise ? `<div class="foto-analise">${f.analise}</div>` : ''}</div>`; }); html += `</div>`; }
+                
+                // RISCOS
+                const secBase = (a.avaliacoes?.length > 0 ? 7 : 6) + (fotosComImagem.length > 0 ? 1 : 0);
+                const secRiscos = secBase + 1;
+                html += `<div class="page"><h2>${secRiscos}. INVENTÁRIO DE RISCOS ERGONÔMICOS</h2><p>O inventário de riscos ergonômicos foi elaborado em conformidade com as diretrizes da NR-01 (Gerenciamento de Riscos Ocupacionais), utilizando a metodologia de Matriz de Risco para priorização das ações de controle. Esta ferramenta permite avaliar sistematicamente os perigos identificados, considerando a probabilidade de ocorrência e a severidade das consequências.</p><div class="info-box" style="background:#f8fafc;border-color:#e2e8f0"><strong>Metodologia da Matriz de Risco 5x5:</strong><p style="margin:8px 0">A avaliação é realizada através da combinação de <strong>Probabilidade</strong> (1-5) e <strong>Severidade</strong> (1-5), resultando em valores de 1 a 25. Os níveis de risco determinam os prazos para implementação das medidas de controle:</p><p style="margin:4px 0;font-size:9pt"><span style="background:#22c55e;color:white;padding:2px 6px;border-radius:4px">Trivial (1-4)</span> Monitoramento contínuo | <span style="background:#84cc16;color:white;padding:2px 6px;border-radius:4px">Tolerável (5-8)</span> 12 meses | <span style="background:#eab308;color:white;padding:2px 6px;border-radius:4px">Moderado (9-12)</span> 6 meses | <span style="background:#f97316;color:white;padding:2px 6px;border-radius:4px">Substancial (15-16)</span> 3 meses | <span style="background:#ef4444;color:white;padding:2px 6px;border-radius:4px">Intolerável (20-25)</span> Imediato</p></div>`;
+                if (a.riscos?.length > 0) { html += `<table><tr><th>Perigo Identificado</th><th>Medidas Existentes</th><th style="text-align:center">P</th><th style="text-align:center">S</th><th style="text-align:center">Risco</th><th>Nível</th><th>Prazo</th></tr>${a.riscos.sort((x,y) => (y.valor||0) - (x.valor||0)).map(r => `<tr><td>${r.perigo}</td><td style="font-size:9pt">${r.medidas || '-'}</td><td style="text-align:center">${r.prob}</td><td style="text-align:center">${r.sev}</td><td style="text-align:center"><span class="badge ${r.nivel === 'Trivial' ? 'trivial' : r.nivel === 'Tolerável' ? 'toleravel' : r.nivel === 'Moderado' ? 'moderado' : r.nivel === 'Substancial' ? 'substancial' : 'intoleravel'}">${r.valor}</span></td><td>${r.nivel}</td><td>${r.prazo}</td></tr>`).join('')}</table>`; } else { html += `<p>Não foram identificados riscos ergonômicos significativos no posto de trabalho analisado durante a realização desta análise.</p>`; }
+                html += `</div>`;
+                
+                // RECOMENDAÇÕES E CONSIDERAÇÕES (sem quebra)
+                const secRecom = secRiscos + 1;
+                html += `<div class="page"><h2>${secRecom}. RECOMENDAÇÕES TÉCNICAS</h2>${a.recomendacoes ? `<div class="info-box">${a.recomendacoes.replace(/\n/g, '<br>')}</div>` : '<p>As recomendações específicas serão elaboradas com base nos riscos identificados e nas condições observadas durante a análise.</p>'}${a.observacoes ? `<h3>Observações Adicionais</h3><p>${a.observacoes}</p>` : ''}<h2>${secRecom + 1}. CONSIDERAÇÕES FINAIS</h2><p>A presente Análise Ergonômica do Trabalho foi elaborada em conformidade com as disposições da Norma Regulamentadora nº 17 e demais instrumentos normativos aplicáveis, incluindo as normas técnicas da ABNT (NBR ISO 11226, NBR ISO 10075-3, NBR 13962 e NBR 10152), utilizando metodologias de avaliação ergonômica validadas cientificamente.</p><p>As recomendações técnicas apresentadas têm como objetivo principal promover a adequação das condições de trabalho às características psicofisiológicas dos trabalhadores, contribuindo para a prevenção de distúrbios osteomusculares relacionados ao trabalho (DORT), melhoria da qualidade de vida no ambiente laboral e aumento da produtividade organizacional.</p><p>Recomenda-se que a implementação das medidas propostas seja acompanhada pelo Serviço Especializado em Engenharia de Segurança e em Medicina do Trabalho (SESMT), quando existente, ou pelo responsável designado. Sugere-se ainda a reavaliação periódica das condições ergonômicas, especialmente após a implementação das medidas corretivas, ou quando ocorrerem alterações significativas no processo de trabalho.</p><p>Este documento técnico integra o conjunto de documentos do Programa de Gerenciamento de Riscos (PGR) da organização, conforme estabelecido pela NR-01, devendo ser mantido à disposição da fiscalização e dos trabalhadores interessados.</p><div class="assinatura"><div class="assinatura-linha"></div><div style="font-weight:600">${config?.responsavel || 'Responsável Técnico'}</div>${config?.cargo ? `<div>${config.cargo}</div>` : ''}${config?.registro ? `<div style="font-size:10pt">${config.registro}</div>` : ''}</div></div>`;
+            });
+            
+            html += `</body></html>`;
+            w.document.write(html);
+            w.document.close();
+            setTimeout(() => { w.print(); setGenerating(false); }, 500);
+        }, 300);
+    };
+    
+    return (
+        <div>
+            <div className="header"><h1 className="title">📄 Relatórios</h1><button className="btn btn-primary" onClick={gerarPDF} disabled={sel.length === 0 || generating}>{generating ? '⏳ Gerando...' : `📄 Gerar PDF (${sel.length})`}</button></div>
+            <div className="alert alert-info"><span>📋</span><div>PDF completo com todas as seções, normas técnicas{config.incluirElaboradora ? ', dados da empresa elaboradora' : ''} e rodapé com copyright.</div></div>
+            <div className="card">{analyses.length > 0 ? (<table><thead><tr><th style={{width:40}}><input type="checkbox" checked={sel.length === analyses.length && analyses.length > 0} onChange={() => setSel(sel.length === analyses.length ? [] : analyses.map(a => a.id))} /></th><th>Empresa</th><th>Setor</th><th>Função</th><th>Riscos</th><th>Fotos</th></tr></thead><tbody>{analyses.map(a => (<tr key={a.id} style={{cursor:'pointer'}} onClick={() => toggle(a.id)}><td onClick={e => e.stopPropagation()}><input type="checkbox" checked={sel.includes(a.id)} onChange={() => toggle(a.id)} /></td><td>{companies.find(c => c.id === a.companyId)?.nome || '-'}</td><td>{a.setor}</td><td>{a.funcao}</td><td><span className="badge badge-warning">{a.riscos?.length || 0}</span></td><td><span className="badge badge-info">{a.fotos?.filter(f => f.imagem).length || 0}</span></td></tr>))}</tbody></table>) : <div className="empty">Nenhuma análise</div>}</div>
+        </div>
+    );
+}
+
+function Settings({ config, setConfig }) {
+    const handleLogoElaboradora = (e) => { 
+        const file = e.target.files[0]; 
+        if (file) { 
+            const reader = new FileReader(); 
+            reader.onload = (ev) => setConfig({...config, elaboradora: {...(config.elaboradora || {}), logo: ev.target.result}}); 
+            reader.readAsDataURL(file); 
+        } 
+    };
+    
+    return (
+        <div>
+            <div className="header"><h1 className="title">⚙️ Configurações</h1></div>
+            
+            <div className="card">
+                <div className="card-header"><h3 className="card-title">👤 Responsável Técnico</h3></div>
+                <div className="form-grid">
+                    <div className="form-group full"><label className="form-label">Nome</label><input className="form-input" value={config.responsavel || ''} onChange={e => setConfig({...config, responsavel: e.target.value})} /></div>
+                    <div className="form-group"><label className="form-label">Cargo</label><input className="form-input" value={config.cargo || ''} onChange={e => setConfig({...config, cargo: e.target.value})} placeholder="Ex: Engenheiro de Segurança" /></div>
+                    <div className="form-group"><label className="form-label">Registro</label><input className="form-input" value={config.registro || ''} onChange={e => setConfig({...config, registro: e.target.value})} placeholder="Ex: CREA-CE 12345" /></div>
+                </div>
+            </div>
+            
+            <div className="card">
+                <div className="card-header"><h3 className="card-title">🏢 Empresa Elaboradora do Laudo</h3></div>
+                
+                <div className="toggle-section">
+                    <div className={`toggle-switch ${config.incluirElaboradora ? 'active' : ''}`} onClick={() => setConfig({...config, incluirElaboradora: !config.incluirElaboradora})}></div>
+                    <div>
+                        <div style={{fontWeight:600, fontSize:'0.85rem'}}>Incluir dados da empresa elaboradora no PDF</div>
+                        <div style={{fontSize:'0.7rem', color:'var(--text-secondary)'}}>Os dados aparecerão no rodapé de todas as páginas</div>
+                    </div>
+                </div>
+                
+                {config.incluirElaboradora && (
+                    <div className="form-grid">
+                        <div className="form-group" style={{marginBottom:12}}>
+                            <label className="form-label">Logo</label>
+                            <label className="logo-upload" style={{minHeight:'80px'}}>
+                                {config.elaboradora?.logo ? <img src={config.elaboradora.logo} /> : <span style={{color:'var(--text-secondary)'}}>📷 Clique para adicionar</span>}
+                                <input type="file" accept="image/*" style={{display:'none'}} onChange={handleLogoElaboradora} />
+                            </label>
+                        </div>
+                        <div className="form-group full"><label className="form-label">Razão Social</label><input className="form-input" value={config.elaboradora?.nome || ''} onChange={e => setConfig({...config, elaboradora: {...(config.elaboradora || {}), nome: e.target.value}})} placeholder="Ex: RC Engenharia Segurança do Trabalho" /></div>
+                        <div className="form-group"><label className="form-label">CNPJ</label><MaskedInput mask="cnpj" value={config.elaboradora?.cnpj || ''} onChange={v => setConfig({...config, elaboradora: {...(config.elaboradora || {}), cnpj: v}})} /></div>
+                        <div className="form-group"><label className="form-label">Telefone</label><MaskedInput mask="telefone" value={config.elaboradora?.telefone || ''} onChange={v => setConfig({...config, elaboradora: {...(config.elaboradora || {}), telefone: v}})} /></div>
+                        <div className="form-group full"><label className="form-label">Endereço</label><input className="form-input" value={config.elaboradora?.endereco || ''} onChange={e => setConfig({...config, elaboradora: {...(config.elaboradora || {}), endereco: e.target.value}})} /></div>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+}
+
+function Backup({ companies, analyses, config, setCompanies, setAnalyses, setConfig }) {
+    const exportar = () => { const data = { companies, analyses, config, exportDate: new Date().toISOString(), version: APP_VERSION }; const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'aet-backup-' + new Date().toISOString().split('T')[0] + '.json'; a.click(); };
+    const importar = (e) => { const file = e.target.files[0]; if (file) { const reader = new FileReader(); reader.onload = (ev) => { try { const data = JSON.parse(ev.target.result); if (data.companies) setCompanies(data.companies); if (data.analyses) setAnalyses(data.analyses); if (data.config) setConfig(data.config); alert('Importado!'); } catch (err) { alert('Erro: ' + err.message); } }; reader.readAsText(file); } };
+    return (
+        <div>
+            <div className="header"><h1 className="title">💾 Backup</h1></div>
+            <div className="alert alert-warning"><span>⚠️</span><div>Dados salvos localmente. Para usar em outra máquina, exporte e importe o backup.</div></div>
+            <div className="card"><div className="card-header"><h3 className="card-title">Estatísticas</h3></div><div className="stats-grid"><div className="stat-card"><div className="stat-value">{companies.length}</div><div className="stat-label">Empresas</div></div><div className="stat-card"><div className="stat-value">{analyses.length}</div><div className="stat-label">Análises</div></div><div className="stat-card"><div className="stat-value">{analyses.reduce((acc, a) => acc + (a.riscos?.length || 0), 0)}</div><div className="stat-label">Riscos</div></div></div></div>
+            <div className="card"><div className="card-header"><h3 className="card-title">Ações</h3></div><div style={{display:'flex', gap:12, flexWrap:'wrap'}}><button className="btn btn-success" onClick={exportar}>📤 Exportar</button><label className="btn btn-secondary" style={{cursor:'pointer'}}>📥 Importar<input type="file" accept=".json" style={{display:'none'}} onChange={importar} /></label></div></div>
+        </div>
+    );
+}
+
+// ==================== APP ====================
+function MainApp({ session, onLogout }) {
+    const [page, setPage] = useState('dashboard');
+    const [companies, setCompanies] = useState(() => load(session.username + '_companies', []));
+    const [analyses, setAnalyses] = useState(() => load(session.username + '_analyses', []));
+    const [config, setConfig] = useState(() => load(session.username + '_config', {}));
+    
+    useEffect(() => { save(session.username + '_companies', companies); }, [companies, session.username]);
+    useEffect(() => { save(session.username + '_analyses', analyses); }, [analyses, session.username]);
+    useEffect(() => { save(session.username + '_config', config); }, [config, session.username]);
+    
+    const menu = [
+        { id: 'dashboard', l: 'Dashboard', i: '📊' },
+        { id: 'companies', l: 'Empresas', i: '🏢' },
+        { id: 'analyses', l: 'Análises', i: '📋' },
+        { id: 'reports', l: 'Relatórios', i: '📄' },
+        { id: 'settings', l: 'Configurações', i: '⚙️' },
+        { id: 'backup', l: 'Backup', i: '💾' }
+    ];
+    
+    return (
+        <div className="app">
+            <aside className="sidebar">
+                <div className="logo"><h1>AET System</h1><span>v{APP_VERSION}</span></div>
+                <nav>{menu.map(m => (<div key={m.id} className={`nav-item ${page === m.id ? 'active' : ''}`} onClick={() => setPage(m.id)}><span>{m.i}</span><span>{m.l}</span></div>))}</nav>
+                <div className="sidebar-footer">
+                    <div className="user-info"><div className="user-avatar">{session.username.charAt(0).toUpperCase()}</div><span>{session.username}</span></div>
+                    <button className="logout-btn" onClick={onLogout}>🚪 Sair</button>
+                    <div className="copyright">{COPYRIGHT}</div>
+                </div>
+            </aside>
+            <main className="main">
+                {page === 'dashboard' && <Dashboard companies={companies} analyses={analyses} />}
+                {page === 'companies' && <Companies companies={companies} setCompanies={setCompanies} />}
+                {page === 'analyses' && <Analyses companies={companies} analyses={analyses} setAnalyses={setAnalyses} />}
+                {page === 'reports' && <Reports companies={companies} analyses={analyses} config={config} />}
+                {page === 'settings' && <Settings config={config} setConfig={setConfig} />}
+                {page === 'backup' && <Backup companies={companies} analyses={analyses} config={config} setCompanies={setCompanies} setAnalyses={setAnalyses} setConfig={setConfig} />}
+            </main>
+        </div>
+    );
+}
+
+function App() {
+    const [session, setSession] = useState(() => load('session', null));
+    const handleLogout = () => { save('session', null); setSession(null); };
+    if (!session) return <LoginScreen onLogin={setSession} />;
+    return <MainApp session={session} onLogout={handleLogout} />;
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
